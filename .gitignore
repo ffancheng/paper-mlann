@@ -1,0 +1,66 @@
+# History files
+.Rhistory
+.Rapp.history
+.Rproj
+
+# Session Data files
+*.RData
+output/
+inst/*.RData
+msg/
+inst/
+ann_hpc/
+annmnist1k/
+_annmnist_wrongProcrustes/
+_annelectricity
+annmnist/embedding/
+annelectricity/embedding
+
+# Data files
+data/*.RData
+data/*.rda
+data/*.hdf5
+data/*.rds
+
+# User-specific files
+.Ruserdata
+
+# Example code in package build process
+*-Ex.R
+
+# Output files from R CMD build
+/*.tar.gz
+
+# Output files from R CMD check
+/*.Rcheck/
+
+# RStudio files
+.Rproj.user/
+
+# produced vignettes
+vignettes/*.html
+vignettes/*.pdf
+
+# OAuth2 token, see https://github.com/hadley/httr/releases/tag/v0.3
+.httr-oauth
+
+# knitr and R markdown default cache directories
+*_cache/
+/cache/
+*.log
+
+# Temporary files created by R markdown
+*.utf8.md
+*.knit.md
+*.bbl
+*.bcf
+*.blg
+*.toc
+*.aux
+*.out
+*.xml
+
+# R Environment Variables
+.Renviron
+
+*.sublime-workspace
