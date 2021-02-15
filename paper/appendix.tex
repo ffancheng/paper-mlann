@@ -1,0 +1,248 @@
+\clearpage\appendix
+\section{Appendix}
+\pagenumbering{arabic}
+\def\thepage{A\arabic{page}}
+
+\subsection{Pseudocode for manifold learning algorithms}
+\label{sec:mlalg}
+This section provides the pseudocode for the four manifold learning algorithms in Section \ref{ml}.
+
+\begin{algorithm}[!htb]
+  \caption{Isomap}
+  \label{alg:isomap}
+  \DontPrintSemicolon
+  \SetAlgoLined
+  \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}
+  \Input{ high-dimensional data $x_i$ for all $i=1,\ldots,N$ }
+  \Output{ low-dimensional embedding $y_i$ for all $i=1,\ldots,N$ }
+  \BlankLine
+
+  Construct the $K$-nearest neighbor graph $\mathcal{G}$ for $x_i$ where $i=1,\ldots,N$;
+
+  Set edge weights to $\delta_{ij}$ for $x_i$ and $x_j$ connected by an edge in $\mathcal{G}$;
+
+  Estimate the geodesic distances (distances along a manifold) between all pairs of points as the shortest-path distances on the graph $\mathcal{G}$;
+
+  Using the estimates of the geodesic distances as inputs into classical MDS, obtain the output points $y_i$ for $i=1,\ldots,N$.
+
+\end{algorithm}
+
+
+\begin{algorithm}[!htb]
+  \caption{LLE}
+  \label{alg:lle}
+  \DontPrintSemicolon
+  \SetAlgoLined
+  \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}
+  \Input{ high-dimensional data $x_i$ for all $i=1,\ldots,N$ }
+  \Output{ low-dimensional embedding $y_i$ for all $i=1,\ldots,N$ }
+  \BlankLine
+
+  Construct the K-nearest neighbor graph $\mathcal{G}$ to find the $K$-ary neighborhood $U_K(i)$ of $x_i$ for all $i=1,\ldots,N$;
+
+  Find a representation of each input point $x_i$ as a weighted and convex combination of its nearest neighbors by minimizing
+  $$
+    \bigg\|x_{i}-\sum_{j \in U_K(i)} w_{i j} x_{j}\bigg\|^{2}
+  $$
+  with respect to weights $w_{ij}$;
+
+  Find a configuration that minimizes
+  $$
+    \sum_{i}\bigg\|y_{i}-\sum_{j \in U_K(i)} w_{i j} y_{j}\bigg\|^{2}
+  $$
+  with respect to $y_{1}, \dots, y_{n}$ where $w_{ij}$ are identical to those found in the previous step.
+
+\end{algorithm}
+
+\begin{algorithm}[!htb]
+  \caption{Laplacian Eigenmaps}
+  \label{alg:le}
+  \DontPrintSemicolon
+  \SetAlgoLined
+  \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}
+  \Input{ high-dimensional data $x_i$ for all $i=1,\ldots,N$ }
+  \Output{ low-dimensional embedding $y_i$ for all $i=1,\ldots,N$ }
+  \BlankLine
+
+  Construct the $K$-nearest neighborhood graph $\mathcal{G}$ for input points $x_i$ for all $i=1,\ldots,N$;
+
+  For input points $x_i$ and $x_j$ that are connected by an edge on $\mathcal{G}$, compute weights as $w_{ij}=1$. Alternatively, set weights using the heat kernel $w_{i j}=e^{-\|x_{i}-x_{j}\|^{2} / 2 \sigma^{2}}$. For input points $x_i$ and $x_j$ that are not connected by an edge on $\mathcal{G}$, set $w_{ij}=0$;
+
+  Compute the graph Laplacian as $L := D-W$, where $W$ has elements $w_{ij}$ and $D$ is the diagonal matrix with elements $D_{i i}=\sum_{j} w_{i j}$;
+
+  Solve the generalized eigendecomposition equation $Lv = \lambda Dv$, where $\lambda$ and $v$ are the eigenvalue and eigenvector, respectively. The output points are obtained as the eigenvectors corresponding to the smallest non-zero eigenvalues.
+
+\end{algorithm}
+
+
+\begin{algorithm}[!htb]
+  \caption{Hessian LLE}
+  \label{alg:hlle}
+  \begin{algorithmic}[1]
+
+  \STATE Construct the $K$-nearest neighborhood graph $\mathcal{G}$;
+
+  \FOR{$\ell = 1,\dots,N$}
+
+  \STATE Estimate the tangent space at $x_\ell$ by stacking all $x_j:j\in U_K(\ell)$ as rows in a $K\times p$ matrix and take a singular value decomposition. A basis for the tangent space is determined by the first $d$ left singular vectors (i.e. a $K\times d$ matrix);
+
+  \STATE Form a $K\times d(d+1)/2$ matrix, $Z$, by augmenting the $d$ left singular vectors from the previous step with a column of ones and with element-wise squares and cross-products of the $d$ left singular vectors;
+
+  \STATE Conduct a Gram-Schmidt orthogonalization on $Z$ and transpose the result;
+
+  \STATE Form the $d(d+1)/2\times K$ matrix $H^\ell$ by picking out the rows of the matrix from the previous step that correspond to the squared terms and cross products. Pre-multiplying a vector composed of elements $f(x_j):j\in U_K(\ell)$ by $H^\ell$ yields an estimate of the elements in the Hessian at $x_\ell$;
+
+  \ENDFOR
+
+  \STATE Compute an $N\times N$ discrete approximation of $\mathcal{H}(f)$ with entries
+  $$
+    \mathcal{H}_{i,j} = \sum_\ell \sum_r (H^\ell_{r,c(i)} H^\ell_{r,c(j)}),
+  $$
+  where $c(i)$ and $c(j)$ are the columns of $H^\ell$ corresponding to observation $i$ and $j$, and $r$ corresponds to an element of the Hessian;
+
+  \STATE  Perform an eigendecomposition on the matrix from the previous step to approximate the null space of $\mathcal{H}$. This will have $d+1$ zero (or near zero) eigenvalues, the smallest of which corresponds to a constant $f$. The eigenvectors corresponding to the next $d$ smallest eigenvalues yield the output points.
+
+  \end{algorithmic}
+\end{algorithm}
+
+\clearpage
+\FloatBarrier
+
+\subsection{Pseudocode for approximate nearest neighbor searching methods}
+\label{sec:annalg}
+The pseudocode for three approximate nearest neighbor searching methods, k-d trees, Annoy, and HNSW, are included in the following section.
+
+The k-d trees method involves two steps: k-d tree construction in Algorithm \ref{alg:buildkdtree} and recursive searching in Algorithm \ref{alg:searchkdtree}.
+Annoy also consists of two steps: preprocess in Algorithm \ref{alg:annoypre} and query in Algorithm \ref{alg:annoyquery}.
+Finally, a general HNSW greedy searching process is shown in Algorithm \ref{alg:hnsw}.
+
+\begin{algorithm}[!htb]
+  \caption{Constructing a k-d tree}
+  \label{alg:buildkdtree}
+  \begin{algorithmic}[1]
+    \STATE Initialize the tree $\textit{depth}=0$ and the node index $g=0$;
+    \STATE Initialize the root node $\mathcal{P}_g$ as $\mathbb{R}^p$;
+    \STATE Initialize the set of all nodes at a depth of zero as $\mathcal{C}_0=\{\mathcal{P}_g\}$;
+    \WHILE{$|\{x_i:x_i\in\mathcal{P}_h\}|>1$ for some $\mathcal{P}_h\in \mathcal{C}_{\textit{depth}}$}
+      \STATE Set $\textit{depth}\leftarrow \textit{depth}+1$;
+      \STATE Initialize $\mathcal{C}_{\textit{depth}}=\varnothing$;
+      \FOR{$\mathcal{P}_h\in\mathcal{C}_{\textit{depth}-1}$}
+        \STATE Find splitting dimension $\ell_h^*=\underset{\ell}{\textrm{argmax}}\underset{i,j\in\mathcal{P}_h}{\max}|x_{i\ell}-x_{j\ell}|$;
+        \STATE Find splitting value $c_h^*=\big(x^{(\nu+1)}_{{\ell_h^*}}-x^{(\nu)}_{{\ell_h^*}}\big)/2$ where $x^{(r)}_{\ell}$ denotes $r^{th}$ order statistic of $\{x_i:x_{i}\in\mathcal{P}_h\}$ along dimension $\ell$;
+        \STATE Set the partition for the left child node $\mathcal{P}^{\textit{left}}_h$ as the set of points $\{z:z\in\mathcal{P}_h, z_{\ell^*}<c^*\}$ where $z_{\ell^*}$ is the value of $z$ on the splitting dimension;
+        \STATE Set the partition for the right child node $\mathcal{P}^{\textit{right}}_h$ as the set of points $\{z:z\in\mathcal{P}_h, z_{\ell^*}\geq c^*\}$;
+        \STATE Set $\mathcal{P}_{g+1}:=\mathcal{P}_h^{\textit{left}}$ and $\mathcal{P}_{g+2}:=\mathcal{P}_h^{\textit{right}}$;
+        \STATE Update $\mathcal{C}_{\textit{depth}}\leftarrow\mathcal{C}_{\textit{depth}}\cup\{\mathcal{P}_{g+1},\mathcal{P}_{g+2}\}$;
+        \STATE Update $g\leftarrow g+2$;
+      \ENDFOR
+    \ENDWHILE
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[!htb]
+  \caption{Recursive procedure $\mathtt{search}(\mathcal{P}_g)$ for nearest neighbor searching.}
+  \label{alg:searchkdtree}
+  \begin{algorithmic}[1]
+  \IF{$\mathcal{P}_g$ is a terminal node}
+  \STATE Compute distance $\delta_{iq}$ from query $x_q$ to $x_i\in\mathcal{P}_g$;
+  \IF {$\delta_{iq}<\delta^*$}
+  \STATE Set $\delta^*\leftarrow\delta$ and $x_{q^*}\leftarrow x_{i}$;
+  \ENDIF
+  \RETURN
+  \ELSE
+  \STATE For splitting dimension $l_g^*$ and splitting value $c_g^*$,
+  \IF{$x_{q{l_g^*}}<c_g^*$}
+  \STATE Evaluate $\mathtt{search}(\mathcal{P}^{\textit{left}}_g)$;
+  \STATE Find hyper-sphere $\mathcal{S}$ of radius $\delta^*$ and tightest bounding box $\mathcal{B}$ of $\{x_i:x_i\in\mathcal{P}^{\textit{right}}_g\}$;
+  \IF{$\mathcal{S}$ and $\mathcal{B}$ intersect}
+  \STATE Evaluate $\mathtt{search}(\mathcal{P}^{\textit{right}}_g)$;
+  \ENDIF
+  \RETURN
+  \ELSE
+  \STATE Evaluate $\mathtt{search}(\mathcal{P}^{\textit{right}}_g)$;
+  \STATE Find hyper-sphere $\mathcal{S}$ of radius $\delta^*$ and tightest bounding box $\mathcal{B}$ of $\{x_i:x_i\in\mathcal{P}^{\textit{left}}_g\}$;
+  \IF{$\mathcal{S}$ and $\mathcal{B}$ intersect}
+  \STATE Evaluate $\mathtt{search}(\mathcal{P}^{\textit{left}}_g)$;
+  \ENDIF
+  \RETURN
+  \ENDIF
+  \ENDIF
+  \end{algorithmic}
+\end{algorithm}
+
+
+
+\begin{algorithm}[!b]
+  \caption{Annoy preprocess}
+  \label{alg:annoypre}
+  \begin{algorithmic}[1]
+    \STATE Initialize the node index $g=0$ and tree $\textit{depth}=0$;
+    \STATE Initialize each root node as $\mathcal{P}_{0,t}=\mathbb{R}^p$ for $t=1,\dots,\textit{n\_trees}$;
+    \STATE Initialize $\mathcal{C}_{0,t}=\{\mathcal{P}_{0,t}\}$ for $t=1,\dots,\textit{n\_trees}$;
+    \FOR{$t = 1,\dots, \textit{n\_trees}$}
+      \WHILE{$|\{x_i:x_i\in\mathcal{P}_{h,t}\}|>\kappa$ for some $\mathcal{P}_{g,t}\in \mathcal{C}_{\textit{depth},t}$}
+        \STATE Set $\textit{depth}\leftarrow \textit{depth}+1$
+        \STATE Initialize $\mathcal{C}_{\textit{depth},t}=\varnothing$
+        \FOR{$\mathcal{P}_{h,t}\in \mathcal{C}_{\textit{depth}-1,t}$}
+        \STATE Randomly select two points $x_i,x_j\in\mathcal{P}_{h,t}$;
+        \STATE Find the hyperplane $\mathcal{S}_{h,t}$ equidistant from $x_i$ and $x_j$;
+        \STATE Set the left child node partition $\mathcal{P}^{\textit{left}}_{h,t}$ as all points $\{z:z\in\mathcal{P}_{h,t},\delta_{zi}<\delta_{zj}\}$ where $\delta_{zi}$ and $\delta_{zj}$ are the distances from $z$ to $x_i$ and $x_j$ respectively;
+        \STATE Set the right child node partition $\mathcal{P}^{\textit{right}}_{h,t}$ as the set of all points $\{z:z\in\mathcal{C}_g,\delta_{zi}\geq \delta_{zj}\}$;
+        \STATE Update $\mathcal{P}_{g+1,t}:=\mathcal{P}_{g,t}^{\textit{left}}$ and $\mathcal{P}_{g+2,t}:=\mathcal{P}_{g,t}^{\textit{right}}$;
+        \STATE Update $\mathcal{C}_{\textit{depth},t}\leftarrow\mathcal{C}_{\textit{depth},t}\cup\{\mathcal{P}_{g+1,t},\mathcal{P}_{g+2,t}\}$
+        \STATE Update $g\leftarrow g+2$;
+        \ENDFOR
+      \ENDWHILE
+    \ENDFOR
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[!b]
+  \caption{Annoy query}
+  \label{alg:annoyquery}
+  \begin{algorithmic}[1]
+    \STATE Letting, $\mathcal{S}_{0,t}$ be the hyperplane splitting the root node of tree $t$, find $\mathcal{P}^q_{0,t}$ and $\mathcal{P}^{-q}_{0,t}$ where the former is on the same side of $\mathcal{S}_{0,t}$ as $x_q$ latter is on the opposite side of $\mathcal{S}_{0,t}$ from $x_q$;
+    \STATE Set $\mathcal{C}_0\leftarrow\{\mathcal{P}^q_{0,t}\}$ for $t=1,\dots,\textit{n\_trees}$;
+    \STATE Set up a priority queue $\mathcal{Q}$ made up of pairs $(\mathcal{P}_g,\delta_g)$ where $\mathcal{P}_g$ is a partition of space (initialized at $\mathcal{P}^{-q}_{0,t}$ for all $t$) and $\delta_g$ are the distances from $x_q$ to the hyperplane corresponding to each $\mathcal{P}_g$;
+    \STATE Set $\textit{depth}\leftarrow 0$;
+    \WHILE{alsot least one element of $\mathcal{C}_{\textit{depth}}\cup\mathcal{Q}_{\textit{depth}}$ does not correspond to a leaf node}
+    \FOR{$\mathcal{P}_{g}\in\mathcal{Q}$}
+    \STATE Find $\mathcal{P}^q_g$ and $\mathcal{P}^{-q}_g$ where these are defined in a similar fashion to Step 1;
+    \STATE Replace $\mathcal{P}_g$with $\mathcal{P}^q_g$ in the priority queue;
+    \STATE Add $\mathcal{P}^{-q}_g$ to the priority queue;
+    \IF{$|\mathcal{Q}|>maxsize\_queue$}
+    \STATE Remove $\mathcal{Q}_{maxsize\_queue}$ from $\mathcal{Q}$;
+    \ENDIF
+    \ENDFOR
+    \STATE Set $\textit{depth}\leftarrow \textit{depth}+1$, $C_{\textit{depth}}\leftarrow\varnothing$;
+    \FOR{$\mathcal{P}_h\in\mathcal{C}_{\textit{depth}-1}$}
+    \STATE Find $\mathcal{P}^q_h$ and $\mathcal{P}^{-q}_h$ where these are defined in a similar fashion to Step 1;
+    \STATE Set $\mathcal{C}_{\textit{depth}}\leftarrow\mathcal{C}_{\textit{depth}}\cup\mathcal{P}^q_h$;
+    \STATE Add $\mathcal{P}_h^{-q}$ to $\mathcal{Q}$, removing elements in the same fashion as Steps 10-12 if needed;
+    \ENDFOR
+    \ENDWHILE
+    \STATE Set candidate set $\mathcal{K}\leftarrow\underset{\mathcal{P}_h\in\mathcal{C}_{\textit{depth}}}{\cup}x_i\in\mathcal{P}_h$;
+    \STATE Set $g\leftarrow 0$;
+    \WHILE{$|\mathcal{K}|<search\_k$}
+    \STATE Set $g\leftarrow g+1$;
+    \STATE Set $\mathcal{K}\leftarrow\mathcal{K}\cup\{x_i:x_i\in\mathcal{P}_g\}$ where $\mathcal{P}_g$ is the $g^{th}$ element of the priority queue;
+    \ENDWHILE
+    \STATE Search for nearest neighbors among the elements of $\mathcal{K}$ by brute force;
+  \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[!htb]
+  \caption{Hierarchical Navigable Small World graphs (HNSW)}
+  \label{alg:hnsw}
+  \begin{algorithmic}[1]
+  \STATE For a query point $x_q$, randomly select an entry point $x_e$;
+  \STATE Initialize $x_b\leftarrow x_e$, $\delta_{qb}=0$ and $\delta_{qj^*}$ as the distance between $x_q$ and $x_b$;
+  \WHILE{$\delta_{qb}<\delta_{qj^*}$}
+  \STATE Set $\delta_{qb}\leftarrow\delta_{qj^*}$;
+  \STATE Update $\delta_{qj^*}=\underset{j\in\mathcal{N}(b)}{\min}\delta_{qj}$ where $\mathcal{N}(b)$ is a set of indices for points connected to $x_b$ by exactly one edge. Set $x_{j*}$ to the value of $x_j$ that achieves this minimum;
+  \STATE Set $x_b\leftarrow x_{j^*}$;
+  \ENDWHILE
+  \RETURN $x_b$
+  \end{algorithmic}
+\end{algorithm}

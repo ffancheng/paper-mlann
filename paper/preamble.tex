@@ -1,0 +1,57 @@
+%% Any special functions or other packages can be loaded here.
+\usepackage[utf8]{inputenc}
+\usepackage[flushleft]{threeparttable}
+\usepackage{multirow}
+\usepackage[normalem]{ulem}
+\useunder{\uline}{\ul}{}
+%% \usepackage{makecell,interfaces-makecell} %latex error
+\usepackage[]{graphicx}
+\usepackage[]{color}
+\usepackage{xcolor}
+% \usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{algorithmic}
+\usepackage{bm}
+\usepackage{etoolbox}
+\usepackage{tabu}
+\usepackage{placeins}
+\setlength {\marginparwidth }{2cm}
+\usepackage{todonotes}
+\urlstyle{tt}  % don't use monospace font for urls
+\allowdisplaybreaks
+
+
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{amsmath, amsfonts, amssymb, bm, mathtools, todonotes, booktabs, microtype}
+
+\makeatletter
+%If bera loaded, this is monash wp.
+\@ifpackageloaded{bera}{}{\usepackage{mathptmx}}
+\makeatother
+\usepackage[cal = txupr]{mathalpha}
+
+
+\makeatletter
+\@ifpackageloaded{geometry}{}{\usepackage{geometry}}
+\makeatother
+\geometry{margin=2.2cm}
+
+\mathtoolsset{showonlyrefs}
+\newcommand{\argmax}{\mathop{\text{arg\,max}}}
+\clubpenalty = 10000
+\widowpenalty = 10000
+\brokenpenalty = 10000
+\usepackage{graphicx}
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.9}
+
+\usepackage{caption}
+\DeclareCaptionStyle{italic}[justification=centering]
+ {labelfont={bf},textfont={it},labelsep=colon}
+\captionsetup[figure]{style=italic,format=hang,singlelinecheck=true}
+\captionsetup[table]{style=italic,format=hang,singlelinecheck=true}
+
