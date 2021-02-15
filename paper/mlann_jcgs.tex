@@ -32,7 +32,8 @@
 \setlength{\cslhangindent}{1.5em}
 % for Pandoc 2.8 to 2.10.1
 \newenvironment{cslreferences}%
-  {}%
+  {\setlength{\parindent}{0pt}%
+  \everypar{\setlength{\hangindent}{\cslhangindent}}\ignorespaces}%
   {\par}
 % For Pandoc 2.11+
 \newenvironment{CSLReferences}[3] % #1 hanging-ident, #2 entry spacing
@@ -203,7 +204,7 @@ Isomap (Tenenbaum, Silva, and Langford 2000), short for isometric feature mappin
 \subsubsection*{LLE}\label{lle}}
 \addcontentsline{toc}{subsubsection}{LLE}
 
-Local Linear Embedding {[}LLE; Roweis and Saul (2000){]} aims to preserve the local properties of the data and is suited to embedding non-convex manifolds. Details of LLE are provided in Algorithm \ref{alg:lle}. First, each input point \(x_i\) is approximated as a linear combination of its K-nearest neighbors, \(x_j:j\in U_K(i)\), with \(w_{ij}\) denoting the weight on \(x_j\) used to approximate \(x_i\). In the next step, output points are found such that each \(y_i\) is well approximated by a linear combination of \(y_j:j\in U_K(i)\) and with the weights \(w_{ij}\) identical to those computed in the previous step.
+Local Linear Embedding (LLE; Roweis and Saul 2000) aims to preserve the local properties of the data and is suited to embedding non-convex manifolds. Details of LLE are provided in Algorithm \ref{alg:lle}. First, each input point \(x_i\) is approximated as a linear combination of its K-nearest neighbors, \(x_j:j\in U_K(i)\), with \(w_{ij}\) denoting the weight on \(x_j\) used to approximate \(x_i\). In the next step, output points are found such that each \(y_i\) is well approximated by a linear combination of \(y_j:j\in U_K(i)\) and with the weights \(w_{ij}\) identical to those computed in the previous step.
 
 Analytical solutions exist both for finding the weights and then given the weights finding the output points. The latter involves an eigendecomposition of a matrix that is sparse due to the fact that only \(K\) nearest neighbors are used to compute the weights.
 
@@ -217,7 +218,7 @@ Laplacian Eigenmaps (Belkin and Niyogi 2003) is based on finding a mapping \(f\)
 \subsubsection*{Hessian LLE}\label{hessian-lle}}
 \addcontentsline{toc}{subsubsection}{Hessian LLE}
 
-Hessian LLE {[}HLLE; Donoho and Grimes (2003){]} works with the functional \(\mathcal{H}(f)=\int_{x\in\mathcal{M}}||H(f(x))||_F\) which is the average Frobenius norm of the Hessian of a function \(f\) where \(f:\mathcal{M}\rightarrow\mathbb{R}^d\). The Hessian is defined using orthogonal coordinates on the tangent space of \(\mathcal{M}\) which are approximated by taking a singular value decomposition of the \(K\)-nearest neighbors around each point. If there exists a mapping from the manifold \(\mathcal{M}\) to \(\mathbb{R}^d\) that is locally isometric, then the null space of \(\mathcal{H}(f)\) is spanned by the original coordinates. The functional \(\mathcal{H}(f)\) can be estimated, and spectral methods are then used to find the null space and hence recover the isometric coordinates. This is outlined in Algorithm \ref{alg:hlle}.
+Hessian LLE (HLLE; Donoho and Grimes 2003) works with the functional \(\mathcal{H}(f)=\int_{x\in\mathcal{M}}||H(f(x))||_F\) which is the average Frobenius norm of the Hessian of a function \(f\) where \(f:\mathcal{M}\rightarrow\mathbb{R}^d\). The Hessian is defined using orthogonal coordinates on the tangent space of \(\mathcal{M}\) which are approximated by taking a singular value decomposition of the \(K\)-nearest neighbors around each point. If there exists a mapping from the manifold \(\mathcal{M}\) to \(\mathbb{R}^d\) that is locally isometric, then the null space of \(\mathcal{H}(f)\) is spanned by the original coordinates. The functional \(\mathcal{H}(f)\) can be estimated, and spectral methods are then used to find the null space and hence recover the isometric coordinates. This is outlined in Algorithm \ref{alg:hlle}.
 
 \hypertarget{ann}{%
 \subsection{Approximate nearest neighbor searching}\label{ann}}
@@ -226,7 +227,7 @@ As seen in the previous section, many manifold learning algorithms begin by find
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.8\linewidth]{/home/hyndman/git/Research/mlann/paper/figures/ann} 
+{\centering \includegraphics[width=0.8\linewidth]{/Users/fche0019/git/mlann_github/paper/figures/ann} 
 
 }
 
@@ -249,13 +250,13 @@ The algorithm as described above will find exact nearest neighbors with \(O(\log
 \subsubsection*{Annoy}\label{annoy}}
 \addcontentsline{toc}{subsubsection}{Annoy}
 
-Annoy {[}Approximate Nearest Neighbors Oh Yeah; Spotify (2016){]} is a C++ library with Python bindings that implements an alternative tree-base algorithm for nearest neighbor search. While sharing some similarities, Annoy differs from k-d trees in two main ways. First, rather than using a single tree, the Annoy algorithm constructs a forest of randomly constructed trees that can be searched in parallel. Second, while Annoy builds trees by constructing splitting hyperplanes, unlike k-d trees, these hyperplanes are not axis-orthogonal. Instead, for each split, Annoy chooses two points at random and sets the splitting hyperplane to be equidistant from these two points. Each node (including terminal nodes) is associated with a partition containing multiple (at most \(\kappa\)) points. One such tree is shown in Figure \ref{fig:annoy}.
+Annoy (Approximate Nearest Neighbors Oh Yeah; Spotify 2016) is a C++ library with Python bindings that implements an alternative tree-base algorithm for nearest neighbor search. While sharing some similarities, Annoy differs from k-d trees in two main ways. First, rather than using a single tree, the Annoy algorithm constructs a forest of randomly constructed trees that can be searched in parallel. Second, while Annoy builds trees by constructing splitting hyperplanes, unlike k-d trees, these hyperplanes are not axis-orthogonal. Instead, for each split, Annoy chooses two points at random and sets the splitting hyperplane to be equidistant from these two points. Each node (including terminal nodes) is associated with a partition containing multiple (at most \(\kappa\)) points. One such tree is shown in Figure \ref{fig:annoy}.
 
 
 
 \begin{figure}
 
-{\centering \includegraphics[width=.49\linewidth]{/home/hyndman/git/Research/mlann/paper/figures/annoy1} \includegraphics[width=.49\linewidth]{/home/hyndman/git/Research/mlann/paper/figures/annoy2} 
+{\centering \includegraphics[width=.49\linewidth]{/Users/fche0019/git/mlann_github/paper/figures/annoy1} \includegraphics[width=.49\linewidth]{/Users/fche0019/git/mlann_github/paper/figures/annoy2} 
 
 }
 
@@ -274,7 +275,7 @@ Hierarchical Navigable Small World (Malkov and Yashunin 2020) is a graph-based a
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.6\linewidth]{/home/hyndman/git/Research/mlann/paper/figures/naive_search} 
+{\centering \includegraphics[width=0.6\linewidth]{/Users/fche0019/git/mlann_github/paper/figures/naive_search} 
 
 }
 
@@ -289,7 +290,7 @@ The only issue remaining is the construction of the graphs at each level of the 
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.6\linewidth]{/home/hyndman/git/Research/mlann/paper/figures/hnsw} 
+{\centering \includegraphics[width=0.6\linewidth]{/Users/fche0019/git/mlann_github/paper/figures/hnsw} 
 
 }
 
@@ -343,7 +344,7 @@ This is also normalized between zero and one and higher values indicate a higher
 \subsubsection*{Mean Relative Rank Errors (MRREs)}\label{mean-relative-rank-errors-mrres}}
 \addcontentsline{toc}{subsubsection}{Mean Relative Rank Errors (MRREs)}
 
-J. Lee and Verleysen (2008) developed two measures known as mean relative rank errors, based on similar principles as Trustworthiness and Continuity. These are defined as
+Lee and Verleysen (2008) developed two measures known as mean relative rank errors, based on similar principles as Trustworthiness and Continuity. These are defined as
 \begin{equation}\label{eq:MRREs}
 \begin{aligned}
   & W_{n}(K)=\frac{1}{H_{K}} \sum_{i=1}^{N} \sum_{j \in U_{K}(i)} \frac{|\rho_{ij}-r_{ij}|}{\rho_{ij}}, \\
@@ -369,7 +370,7 @@ where \(q_{k\ell}\) is the element in row \(k\) and column \(\ell\) of the co-ra
 \begin{equation}\label{eq:coRanking}
   q_{k\ell}=|\{(i, j): \rho_{i j}=k \text { and } r_{i j}=\ell\}|.
 \end{equation}
-For instance, the element in the first row and column of \(Q\), \(q_{11}\), denotes the number of pairs of observations for which the second observation is the nearest neighbor of the first observation in both the input and output space. The range of the criterion is \(Q_{N X}(K) \in[0,1]\), where 1 indicates a more accurate representation. It is also worth noting that the T\&C, MRREs, and LCMC can be expressed in terms of the co-ranking matrix with details provided by J. Lee and Verleysen (2008).
+For instance, the element in the first row and column of \(Q\), \(q_{11}\), denotes the number of pairs of observations for which the second observation is the nearest neighbor of the first observation in both the input and output space. The range of the criterion is \(Q_{N X}(K) \in[0,1]\), where 1 indicates a more accurate representation. It is also worth noting that the T\&C, MRREs, and LCMC can be expressed in terms of the co-ranking matrix with details provided by Lee and Verleysen (2008).
 
 \hypertarget{procrustes-measure-rxy}{%
 \subsubsection*{\texorpdfstring{Procrustes measure (\(R(X,Y)\))}{Procrustes measure (R(X,Y))}}\label{procrustes-measure-rxy}}
@@ -391,7 +392,7 @@ where the denominator is a normalizing factor that ensures \(G\) will lie betwee
 \hypertarget{mnist-dataset}{%
 \subsection{MNIST dataset}\label{mnist-dataset}}
 
-The MNIST database {[}Modified National Institute of Standards and Technology database; LeCun, Cortes, and Burges (2010){]} is a commonly used benchmark dataset for dimension reduction techniques, consisting of 60,000 grayscale images of handwritten digits in a training set, and 10,000 grayscale images in a test set. It was constructed from a larger database called NIST. In the original NIST dataset, images in the training data were hand-written by American Census Bureau employees (Special Database 3, SD-3), while images in the test data were handwritten by high school students (Special Database 1, SD-1). LeCun, Cortes, and Burges (2010) normalized the size of the NIST images and centered them in a \(28\times 28=784\) pixel field. Then they mixed the samples from both SD-3 and SD-1 to form the MNIST dataset, where the training set contains 30,000 images from SD-3 and 30,000 images from SD-1, while the test set is composed of 5,000 images from SD-3 and 5,000 images from SD-1.
+The MNIST database (Modified National Institute of Standards and Technology database; LeCun, Cortes, and Burges 2010) is a commonly used benchmark dataset for dimension reduction techniques, consisting of 60,000 grayscale images of handwritten digits in a training set, and 10,000 grayscale images in a test set. It was constructed from a larger database called NIST. In the original NIST dataset, images in the training data were hand-written by American Census Bureau employees (Special Database 3, SD-3), while images in the test data were handwritten by high school students (Special Database 1, SD-1). LeCun, Cortes, and Burges (2010) normalized the size of the NIST images and centered them in a \(28\times 28=784\) pixel field. Then they mixed the samples from both SD-3 and SD-1 to form the MNIST dataset, where the training set contains 30,000 images from SD-3 and 30,000 images from SD-1, while the test set is composed of 5,000 images from SD-3 and 5,000 images from SD-1.
 
 To examine manifold learning using ANN techniques, we use the MNIST test set of \(N=10,000\) observations, with a dimension equal to the number of pixels (\(p=784\)). The embedding dimension for manifold learning is set as \(d=5\). We apply different combinations of manifold learning algorithms and ANN methods to the data, recording the computational time, and calculating the embedding quality measures discussed in Section \ref{qualitymeasure}. All experiments were run in parallel on a high performance computing cluster with 2.70GHz Xeon-Gold-6150 CPUs.
 
@@ -434,7 +435,7 @@ Figure \ref{fig:iso} shows the performance of different combinations of ANN and 
 \caption{Comparison of Isomap embedding quality measures against computation time for three ANN methods, Annoy, HNSW and k-d trees. The percentage change compared to true nearest neighbors of six quality measures are shown in the order of Trustworthiness, Continuity, MRREs, LCMC, Co-ranking matrix, and Procrustes measure. }\label{fig:iso6measure}
 \end{figure}
 
-The results from Figure \ref{fig:iso} are, for the most part, robust to the use of metric used to evaluate embedding quality. For instance, Figure \ref{fig:iso6measure} shows results of percentage change for all quality measures discussed in Section \ref{qualitymeasure} for Isomap. For all measures, the computational time of the algorithm can be cut in half with an associated reduction in the accuracy of less than 10\% (with a few exceptions due to the instability of HNSW). Similar conclusions can be drawn for LLE and Laplacian Eigenmaps so these figures\footnote{available at \url{https://github.com/ffancheng/mlann_figures/tree/public/paper/figures/public}.} are omitted for brevity.
+The results from Figure \ref{fig:iso} are, for the most part, robust to the use of metric used to evaluate embedding quality. For instance, Figure \ref{fig:iso6measure} shows results of percentage change for all quality measures discussed in Section \ref{qualitymeasure} for Isomap. For all measures, the computational time of the algorithm can be cut in half with an associated reduction in the accuracy of less than 10\% (with a few exceptions due to the instability of HNSW). Similar conclusions can be drawn for LLE and Laplacian Eigenmaps so these figures\footnote{available at \url{https://github.com/ffancheng/paper-mlann/tree/public/paper/figures/public}.} are omitted for brevity.
 On the other hand, Figure \ref{fig:hllemeasure} does show that for Hessian LLE, HNSW can achieve a higher level of accuracy for some measures (Continuity, LCMC, Co-ranking and Procrustes), even compared to exact nearest neighbors. While this result is quite counter-intuitive, it should be noted that Hessian LLE performs considerably worse than Isomap (in general Isomap achieves an LCMC of above 0.3 for Isomap, the corresponding figure never exceeds 0.2 for Hessian LLE).
 This can also be inferred from Table \ref{tab:nnmeasure} where six embedding quality measures using the exact nearest neighbors are shown for four different manifold learning algorithms. In general, Isomap outperforms the other three methods while Hessian LLE performs the worst in terms of all six quality measures.
 
@@ -478,7 +479,7 @@ We use measurements of half-hourly electricity consumption gathered from 3,639 r
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.8\linewidth]{/home/hyndman/git/Research/mlann/paper/figures/smartmeter} 
+{\centering \includegraphics[width=0.8\linewidth]{/Users/fche0019/git/mlann_github/paper/figures/smartmeter} 
 
 }
 
@@ -525,7 +526,7 @@ Table \ref{tab:quality1id} also shows one of the embedding quality measures, Tru
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{/home/hyndman/git/Research/mlann/paper/figures/tod_compare_kdtreeannoy_1id336tow} 
+{\centering \includegraphics[width=1\linewidth]{/Users/fche0019/git/mlann_github/paper/figures/tod_compare_kdtreeannoy_1id336tow} 
 
 }
 
@@ -568,7 +569,7 @@ One particular problem of interest in visualizing smart meter data is to identif
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{/home/hyndman/git/Research/mlann/paper/figures/hdr10_compareisomap_kdtreeannoy_1id336tow} 
+{\centering \includegraphics[width=1\linewidth]{/Users/fche0019/git/mlann_github/paper/figures/hdr10_compareisomap_kdtreeannoy_1id336tow} 
 
 }
 
@@ -579,7 +580,7 @@ We can gain further insight by comparing distributions corresponding to specific
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{/home/hyndman/git/Research/mlann/paper/figures/electricity_compare2tow_1id336tow} 
+{\centering \includegraphics[width=1\linewidth]{/Users/fche0019/git/mlann_github/paper/figures/electricity_compare2tow_1id336tow} 
 
 }
 
@@ -601,7 +602,7 @@ Isomap and Laplacian Eigenmaps are highly robust to the use of approximate neare
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{/home/hyndman/git/Research/mlann/paper/figures/hdr10_compare4ml_kdtreeannoy_allids_nt50_3639id_notow_201length} 
+{\centering \includegraphics[width=1\linewidth]{/Users/fche0019/git/mlann_github/paper/figures/hdr10_compare4ml_kdtreeannoy_allids_nt50_3639id_notow_201length} 
 
 }
 
@@ -644,7 +645,7 @@ Further insights are gained by comparing the electricity demand distributions of
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.8\linewidth]{/home/hyndman/git/Research/mlann/paper/figures/electricity_compare3id} 
+{\centering \includegraphics[width=0.8\linewidth]{/Users/fche0019/git/mlann_github/paper/figures/electricity_compare3id} 
 
 }
 
@@ -652,7 +653,7 @@ Further insights are gained by comparing the electricity demand distributions of
 \end{figure}
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{/home/hyndman/git/Research/mlann/paper/figures/electricity_hdrbox_3id_7dow} 
+{\centering \includegraphics[width=1\linewidth]{/Users/fche0019/git/mlann_github/paper/figures/electricity_hdrbox_3id_7dow} 
 
 }
 
@@ -685,155 +686,154 @@ We would also like to acknowledge the support of the \emph{Australian Research C
 \addcontentsline{toc}{section}{References}
 
 \hypertarget{refs}{}
-\begin{CSLReferences}{1}{0}
+\begin{cslreferences}
 \leavevmode\hypertarget{ref-amari2016}{}%
 Amari, Shun-ichi. 2016. \emph{Information Geometry and Its Applications}. Vol. 194. Springer.
 
 \leavevmode\hypertarget{ref-AryaSunil1998-nd}{}%
-Arya, Sunil, David M Mount, Nathan S Netanyahu, Ruth Silverman, and Angela Y Wu. 1998. {``An Optimal Algorithm for Approximate Nearest Neighbor Searching Fixed Dimensions.''} \emph{J. ACM}, November.
+Arya, Sunil, David M Mount, Nathan S Netanyahu, Ruth Silverman, and Angela Y Wu. 1998. ``An Optimal Algorithm for Approximate Nearest Neighbor Searching Fixed Dimensions.'' \emph{J. ACM}, November.
 
 \leavevmode\hypertarget{ref-Aumuller2020-nk}{}%
-Aumüller, Martin, Erik Bernhardsson, and Alexander Faithfull. 2020. {``{ANN-Benchmarks}: A Benchmarking Tool for Approximate Nearest Neighbor Algorithms.''} \emph{Inf. Syst.} 87 (January): 101374.
+Aumüller, Martin, Erik Bernhardsson, and Alexander Faithfull. 2020. ``ANN-Benchmarks: A Benchmarking Tool for Approximate Nearest Neighbor Algorithms.'' \emph{Inf. Syst.} 87 (January): 101374.
 
 \leavevmode\hypertarget{ref-Belkin2003}{}%
-Belkin, Mikhail, and Partha Niyogi. 2003. {``Laplacian Eigenmaps for Dimensionality Reduction and Data Representation.''} \emph{Neural Computation} 15 (6): 1373--96.
+Belkin, Mikhail, and Partha Niyogi. 2003. ``Laplacian Eigenmaps for Dimensionality Reduction and Data Representation.'' \emph{Neural Computation} 15 (6): 1373--96.
 
 \leavevmode\hypertarget{ref-Bentley1975-zo}{}%
-Bentley, Jon Louis. 1975. {``Multidimensional Binary Search Trees Used for Associative Searching.''} \emph{Commun. ACM} 18 (9): 509--17.
+Bentley, Jon Louis. 1975. ``Multidimensional Binary Search Trees Used for Associative Searching.'' \emph{Commun. ACM} 18 (9): 509--17.
 
 \leavevmode\hypertarget{ref-Bernhardsson2015-slides}{}%
-Bernhardsson, Erik. 2015. {``ANN Presentation.''} \emph{GitHub Repository}. \url{https://github.com/erikbern/ann-presentation}; GitHub.
+Bernhardsson, Erik. 2015. ``ANN Presentation.'' \emph{GitHub Repository}. \url{https://github.com/erikbern/ann-presentation}; GitHub.
 
 \leavevmode\hypertarget{ref-Carter2009-ti}{}%
-Carter, Kevin M, Raviv Raich, William G Finn, and Alfred O Hero 3rd. 2009. {``{FINE}: Fisher Information Nonparametric Embedding.''} \emph{IEEE Trans. Pattern Anal. Mach. Intell.} 31 (11): 2093--98.
+Carter, Kevin M, Raviv Raich, William G Finn, and Alfred O Hero 3rd. 2009. ``FINE: Fisher Information Nonparametric Embedding.'' \emph{IEEE Trans. Pattern Anal. Mach. Intell.} 31 (11): 2093--8.
 
 \leavevmode\hypertarget{ref-carter2009}{}%
-Carter, Kevin M, Raviv Raich, William G Finn, and Alfred O Hero III. 2009. {``Fine: Fisher Information Nonparametric Embedding.''} \emph{IEEE Transactions on Pattern Analysis and Machine Intelligence} 31 (11): 2093--98.
+Carter, Kevin M, Raviv Raich, William G Finn, and Alfred O Hero III. 2009. ``Fine: Fisher Information Nonparametric Embedding.'' \emph{IEEE Transactions on Pattern Analysis and Machine Intelligence} 31 (11): 2093--8.
 
 \leavevmode\hypertarget{ref-Cayton2005-dp}{}%
-Cayton, Lawrence. 2005. {``Algorithms for Manifold Learning.''} \emph{Univ. Of California at San Diego Tech. Rep} 12 (1-17): 1.
+Cayton, Lawrence. 2005. ``Algorithms for Manifold Learning.'' \emph{Univ. Of California at San Diego Tech. Rep} 12 (1-17): 1.
 
 \leavevmode\hypertarget{ref-Chen2009-su}{}%
-Chen, Lisha, and Andreas Buja. 2009. {``Local Multidimensional Scaling for Nonlinear Dimension Reduction, Graph Drawing, and Proximity Analysis.''} \emph{J. Am. Stat. Assoc.} 104 (485): 209--19.
+Chen, Lisha, and Andreas Buja. 2009. ``Local Multidimensional Scaling for Nonlinear Dimension Reduction, Graph Drawing, and Proximity Analysis.'' \emph{J. Am. Stat. Assoc.} 104 (485): 209--19.
 
 \leavevmode\hypertarget{ref-Coifman2006-no}{}%
-Coifman, Ronald R, and Stéphane Lafon. 2006. {``Diffusion Maps.''} \emph{Appl. Comput. Harmon. Anal.} 21 (1): 5--30.
+Coifman, Ronald R, and Stéphane Lafon. 2006. ``Diffusion Maps.'' \emph{Appl. Comput. Harmon. Anal.} 21 (1): 5--30.
 
 \leavevmode\hypertarget{ref-Commission_For_Energy_Regulation2011-ub}{}%
-Commission For Energy Regulation. 2011. {``Electricity Smart Metering Customer Behaviour Trials Findings Report.''} Dublin: Commission for Energy Regulation.
+Commission For Energy Regulation. 2011. ``Electricity Smart Metering Customer Behaviour Trials Findings Report.'' Dublin: Commission for Energy Regulation.
 
 \leavevmode\hypertarget{ref-Cook1995}{}%
-Cook, Dianne, Andreas Buja, Javier Cabrera, and Catherine Hurley. 1995. {``Grand Tour and Projection Pursuit.''} \emph{J Computational and Graphical Statistics} 4: 155--72.
+Cook, Dianne, Andreas Buja, Javier Cabrera, and Catherine Hurley. 1995. ``Grand Tour and Projection Pursuit.'' \emph{J Computational and Graphical Statistics} 4 (3): 155--72.
 
 \leavevmode\hypertarget{ref-Dijkstra1959-ml}{}%
-Dijkstra, E W. 1959. {``A Note on Two Problems in Connexion with Graphs.''} \emph{Numer. Math.} 1 (1): 269--71.
+Dijkstra, E W. 1959. ``A Note on Two Problems in Connexion with Graphs.'' \emph{Numer. Math.} 1 (1): 269--71.
 
 \leavevmode\hypertarget{ref-Donoho2003-am}{}%
-Donoho, David L, and Carrie Grimes. 2003. {``Hessian Eigenmaps: Locally Linear Embedding Techniques for High-Dimensional Data.''} \emph{Proc. Natl. Acad. Sci. U. S. A.} 100 (10): 5591--96.
+Donoho, David L, and Carrie Grimes. 2003. ``Hessian Eigenmaps: Locally Linear Embedding Techniques for High-Dimensional Data.'' \emph{Proc. Natl. Acad. Sci. U. S. A.} 100 (10): 5591--6.
 
 \leavevmode\hypertarget{ref-FloydRobert1962-au}{}%
-Floyd, W, Robert. 1962. {``Algorithm 97: Shortest Path.''} \emph{Commun. ACM}, June.
+Floyd, W, Robert. 1962. ``Algorithm 97: Shortest Path.'' \emph{Commun. ACM}, June.
 
 \leavevmode\hypertarget{ref-Friedman1977-dh}{}%
-Friedman, Jerome H, Jon Louis Bentley, and Raphael Ari Finkel. 1977. {``An Algorithm for Finding Best Matches in Logarithmic Expected Time.''} \emph{ACM Trans. Math. Softw.} 3 (3): 209--26.
+Friedman, Jerome H, Jon Louis Bentley, and Raphael Ari Finkel. 1977. ``An Algorithm for Finding Best Matches in Logarithmic Expected Time.'' \emph{ACM Trans. Math. Softw.} 3 (3): 209--26.
 
 \leavevmode\hypertarget{ref-Goldberg2009-tb}{}%
-Goldberg, Yair, and Ya'acov Ritov. 2009. {``Local Procrustes for Manifold Embedding: A Measure of Embedding Quality and Embedding Algorithms.''} \emph{Mach. Learn.} 77 (1): 1--25.
+Goldberg, Yair, and Ya'acov Ritov. 2009. ``Local Procrustes for Manifold Embedding: A Measure of Embedding Quality and Embedding Algorithms.'' \emph{Mach. Learn.} 77 (1): 1--25.
 
 \leavevmode\hypertarget{ref-Hellinger_undated-rs}{}%
-Hellinger, E. 1909. {``Neue Begr{ü}ndung Der Theorie Quadratischer Formen von Unendlichvielen Ver{ä}nderlichen.''} \emph{J. Reine Angew. Math.} 1909 (136): 210--71.
+Hellinger, E. 1909. ``Neue Begründung Der Theorie Quadratischer Formen von Unendlichvielen Veränderlichen.'' \emph{J. Reine Angew. Math.} 1909 (136): 210--71.
 
 \leavevmode\hypertarget{ref-HDR96}{}%
-Hyndman, Rob J. 1996. {``Computing and Graphing Highest Density Regions.''} \emph{The American Statistician} 50 (2): 120--26.
+Hyndman, Rob J. 1996. ``Computing and Graphing Highest Density Regions.'' \emph{The American Statistician} 50 (2): 120--26.
 
 \leavevmode\hypertarget{ref-Hyndman2018-nq}{}%
-Hyndman, Rob J, Xueqin Amy Liu, and Pierre Pinson. 2018. {``Visualizing Big Energy Data: Solutions for This Crucial Component of Data Analysis.''} \emph{IEEE Power and Energy Magazine} 16 (3): 18--25.
+Hyndman, Rob J, Xueqin Amy Liu, and Pierre Pinson. 2018. ``Visualizing Big Energy Data: Solutions for This Crucial Component of Data Analysis.'' \emph{IEEE Power and Energy Magazine} 16 (3): 18--25.
 
 \leavevmode\hypertarget{ref-Izenman2012-mx}{}%
-Izenman, Alan Julian. 2012. {``Introduction to Manifold Learning.''} \emph{WIREs Comp Stat} 4 (5): 439--46.
+Izenman, Alan Julian. 2012. ``Introduction to Manifold Learning.'' \emph{WIREs Comp Stat} 4 (5): 439--46.
 
 \leavevmode\hypertarget{ref-Kraemer2018-zf}{}%
-Kraemer, Guido, Markus Reichstein, and Miguel D Mahecha. 2018. {``dimRed and {coRanking---Unifying} Dimensionality Reduction in {R}.''} \emph{The R Journal} 10 (1): 342--58.
+Kraemer, Guido, Markus Reichstein, and Miguel D Mahecha. 2018. ``DimRed and coRanking---Unifying Dimensionality Reduction in R.'' \emph{The R Journal} 10 (1): 342--58.
 
 \leavevmode\hypertarget{ref-Kruskal1964a}{}%
-Kruskal, J B. 1964a. {``Multidimensional Scaling by Optimizing Goodness of Fit to a Nonmetric Hypothesis.''} \emph{Psychometrika} 29 (1): 1--27.
+Kruskal, J B. 1964a. ``Multidimensional Scaling by Optimizing Goodness of Fit to a Nonmetric Hypothesis.'' \emph{Psychometrika} 29 (1): 1--27.
 
 \leavevmode\hypertarget{ref-Kruskal1964b}{}%
----------. 1964b. {``Nonmetric Multidimensional Scaling: A Numerical Method.''} \emph{Psychometrika} 29 (2): 115--29.
+---------. 1964b. ``Nonmetric Multidimensional Scaling: A Numerical Method.'' \emph{Psychometrika} 29 (2): 115--29.
 
 \leavevmode\hypertarget{ref-Laa2020}{}%
-Laa, Ursula, Dianne Cook, and German Valencia. 2020. {``A Slice Tour for Finding Hollowness in High-Dimensional Data.''} \emph{Journal of Computational and} 29: 681--87.
+Laa, Ursula, Dianne Cook, and German Valencia. 2020. ``A Slice Tour for Finding Hollowness in High-Dimensional Data.'' \emph{Journal of Computational and} 29 (3): 681--87.
 
 \leavevmode\hypertarget{ref-lecam1973}{}%
-LeCam, Lucien. 1973. {``Convergence of Estimates Under Dimensionality Restrictions.''} \emph{The Annals of Statistics} 1 (1): 38--53.
+LeCam, Lucien. 1973. ``Convergence of Estimates Under Dimensionality Restrictions.'' \emph{The Annals of Statistics} 1 (1): 38--53.
 
 \leavevmode\hypertarget{ref-lecun2010mnist}{}%
-LeCun, Yann, Corinna Cortes, and CJ Burges. 2010. {``MNIST Handwritten Digit Database.''} \emph{ATT Labs {[}Online{]}. Available: Http://Yann.lecun.com/Exdb/Mnist}.
+LeCun, Yann, Corinna Cortes, and CJ Burges. 2010. ``MNIST Handwritten Digit Database.'' \emph{ATT Labs {[}Online{]}. Available: Http://Yann.lecun.com/Exdb/Mnist}.
 
 \leavevmode\hypertarget{ref-Lee2007-wq}{}%
 Lee, John A, and Michel Verleysen. 2007. \emph{Nonlinear Dimensionality Reduction}. Springer Science \& Business Media.
 
 \leavevmode\hypertarget{ref-Lee2008-cx}{}%
-Lee, John, and Michel Verleysen. 2008. {``Quality Assessment of Nonlinear Dimensionality Reduction Based on k-Ary Neighborhoods.''} In \emph{New Challenges for Feature Selection in Data Mining and Knowledge Discovery}, 21--35. jmlr.org.
+Lee, John, and Michel Verleysen. 2008. ``Quality Assessment of Nonlinear Dimensionality Reduction Based on K-Ary Neighborhoods.'' In \emph{New Challenges for Feature Selection in Data Mining and Knowledge Discovery}, 21--35. jmlr.org.
 
 \leavevmode\hypertarget{ref-lee2007}{}%
-Lee, Sang-Mook, A Lynn Abbott, and Philip A Araman. 2007. {``Dimensionality Reduction and Clustering on Statistical Manifolds.''} In \emph{2007 IEEE Conference on Computer Vision and Pattern Recognition}, 1--7. IEEE.
+Lee, Sang-Mook, A Lynn Abbott, and Philip A Araman. 2007. ``Dimensionality Reduction and Clustering on Statistical Manifolds.'' In \emph{2007 Ieee Conference on Computer Vision and Pattern Recognition}, 1--7. IEEE.
 
 \leavevmode\hypertarget{ref-Lunga2014-kc}{}%
-Lunga, D, S Prasad, M M Crawford, and O Ersoy. 2014. {``{Manifold-Learning-Based} Feature Extraction for Classification of Hyperspectral Data: A Review of Advances in Manifold Learning.''} \emph{IEEE Signal Process. Mag.} 31 (1): 55--66.
+Lunga, D, S Prasad, M M Crawford, and O Ersoy. 2014. ``Manifold-Learning-Based Feature Extraction for Classification of Hyperspectral Data: A Review of Advances in Manifold Learning.'' \emph{IEEE Signal Process. Mag.} 31 (1): 55--66.
 
 \leavevmode\hypertarget{ref-Maaten2008-dw}{}%
-Maaten, Laurens van der, and Geoffrey Hinton. 2008. {``Visualizing Data Using {t-SNE}.''} \emph{J. Mach. Learn. Res.} 9 (Nov): 2579--2605.
+Maaten, Laurens van der, and Geoffrey Hinton. 2008. ``Visualizing Data Using t-SNE.'' \emph{J. Mach. Learn. Res.} 9 (Nov): 2579--2605.
 
 \leavevmode\hypertarget{ref-Malkov2020-jp}{}%
-Malkov, Yu A, and D A Yashunin. 2020. {``Efficient and Robust Approximate Nearest Neighbor Search Using Hierarchical Navigable Small World Graphs.''} \emph{IEEE Trans. Pattern Anal. Mach. Intell.} 42 (4): 824--36.
+Malkov, Yu A, and D A Yashunin. 2020. ``Efficient and Robust Approximate Nearest Neighbor Search Using Hierarchical Navigable Small World Graphs.'' \emph{IEEE Trans. Pattern Anal. Mach. Intell.} 42 (4): 824--36.
 
 \leavevmode\hypertarget{ref-McQueen2016-xz}{}%
-McQueen, James, Marina Meilă, Jacob VanderPlas, and Zhongyue Zhang. 2016. {``Megaman: Scalable Manifold Learning in Python.''} \emph{J. Mach. Learn. Res.} 17 (148): 1--5.
+McQueen, James, Marina Meilă, Jacob VanderPlas, and Zhongyue Zhang. 2016. ``Megaman: Scalable Manifold Learning in Python.'' \emph{J. Mach. Learn. Res.} 17 (148): 1--5.
 
 \leavevmode\hypertarget{ref-mount2010-ann}{}%
-Mount, David, and Sunil Arya. 2010. {``ANN: A Library for Approximate Nearest Neighbor Searching.''} \url{https://github.com/jefferislab/RANN}.
+Mount, David, and Sunil Arya. 2010. ``ANN: A Library for Approximate Nearest Neighbor Searching.'' \url{https://github.com/jefferislab/RANN}.
 
 \leavevmode\hypertarget{ref-jefferislab2019-l2}{}%
-Mount, David, Sunil Arya, Samuel E. Kemp, Gregory Jefferis, and Kirill Mülle. 2019. {``Fast Nearest Neighbour Search (Wraps ANN Library) Using L2 Metric.''} \emph{GitHub Repository}. \url{https://github.com/jefferislab/RANN}; GitHub.
+Mount, David, Sunil Arya, Samuel E. Kemp, Gregory Jefferis, and Kirill Mülle. 2019. ``Fast Nearest Neighbour Search (Wraps Ann Library) Using L2 Metric.'' \emph{GitHub Repository}. \url{https://github.com/jefferislab/RANN}; GitHub.
 
 \leavevmode\hypertarget{ref-Muja2009-de}{}%
-Muja, Marius, and David G Lowe. 2009. {``Fast Approximate Nearest Neighbors with Automatic Algorithm Configuration.''} \emph{VISAPP (1)} 2 (331-340): 2.
+Muja, Marius, and David G Lowe. 2009. ``Fast Approximate Nearest Neighbors with Automatic Algorithm Configuration.'' \emph{VISAPP (1)} 2 (331-340): 2.
 
 \leavevmode\hypertarget{ref-Nadler2006-cm}{}%
-Nadler, Boaz, Stephane Lafon, Ioannis Kevrekidis, and Ronald R Coifman. 2006. {``Diffusion Maps, Spectral Clustering and Eigenfunctions of {Fokker-Planck} Operators.''} In \emph{Advances in Neural Information Processing Systems 18}, edited by Y Weiss, B Schölkopf, and J C Platt, 955--62. MIT Press.
+Nadler, Boaz, Stephane Lafon, Ioannis Kevrekidis, and Ronald R Coifman. 2006. ``Diffusion Maps, Spectral Clustering and Eigenfunctions of Fokker-Planck Operators.'' In \emph{Advances in Neural Information Processing Systems 18}, edited by Y Weiss, B Schölkopf, and J C Platt, 955--62. MIT Press.
 
 \leavevmode\hypertarget{ref-Roweis2000-ni}{}%
-Roweis, S T, and L K Saul. 2000. {``Nonlinear Dimensionality Reduction by Locally Linear Embedding.''} \emph{Science} 290 (5500): 2323--26.
+Roweis, S T, and L K Saul. 2000. ``Nonlinear Dimensionality Reduction by Locally Linear Embedding.'' \emph{Science} 290 (5500): 2323--6.
 
 \leavevmode\hypertarget{ref-Shepard1962a}{}%
-Shepard, Roger N. 1962a. {``The Analysis of Proximities: Multidimensional Scaling with an Unknown Distance Function. {I}.''} \emph{Psychometrika} 27 (2): 125--40.
+Shepard, Roger N. 1962a. ``The Analysis of Proximities: Multidimensional Scaling with an Unknown Distance Function. I.'' \emph{Psychometrika} 27 (2): 125--40.
 
 \leavevmode\hypertarget{ref-Shepard1962b}{}%
----------. 1962b. {``The Analysis of Proximities: Multidimensional Scaling with an Unknown Distance Function. {II}.''} \emph{Psychometrika} 27 (3): 219--46.
+---------. 1962b. ``The Analysis of Proximities: Multidimensional Scaling with an Unknown Distance Function. II.'' \emph{Psychometrika} 27 (3): 219--46.
 
 \leavevmode\hypertarget{ref-Bernhardsson2016-tf}{}%
-Spotify. 2016. {``Annoy.''} \emph{GitHub Repository}. \url{https://github.com/github/open-source-survey}; GitHub.
+Spotify. 2016. ``Annoy.'' \emph{GitHub Repository}. \url{https://github.com/github/open-source-survey}; GitHub.
 
 \leavevmode\hypertarget{ref-Talagala2020}{}%
-Talagala, Priyanga Dilini, Rob J. Hyndman, Kate Smith-Miles, Sevvandi Kandanaarachchi, and Mario A. Muñoz. 2020. {``Anomaly Detection in Streaming Nonstationary Temporal Data.''} \emph{Journal of Computational and Graphical Statistics} 29 (1): 13--27.
+Talagala, Priyanga Dilini, Rob J. Hyndman, Kate Smith-Miles, Sevvandi Kandanaarachchi, and Mario A. Muñoz. 2020. ``Anomaly Detection in Streaming Nonstationary Temporal Data.'' \emph{Journal of Computational and Graphical Statistics} 29 (1): 13--27.
 
 \leavevmode\hypertarget{ref-Tenenbaum2000-fr}{}%
-Tenenbaum, J B, V de Silva, and J C Langford. 2000. {``A Global Geometric Framework for Nonlinear Dimensionality Reduction.''} \emph{Science} 290 (5500): 2319--23.
+Tenenbaum, J B, V de Silva, and J C Langford. 2000. ``A Global Geometric Framework for Nonlinear Dimensionality Reduction.'' \emph{Science} 290 (5500): 2319--23.
 
 \leavevmode\hypertarget{ref-Venna2006-nd}{}%
-Venna, Jarkko, and Samuel Kaski. 2006. {``Local Multidimensional Scaling.''} \emph{Neural Netw.} 19 (6-7): 889--99.
+Venna, Jarkko, and Samuel Kaski. 2006. ``Local Multidimensional Scaling.'' \emph{Neural Netw.} 19 (6-7): 889--99.
 
 \leavevmode\hypertarget{ref-Weinberger2006-dc}{}%
-Weinberger, Kilian Q, and Lawrence K Saul. 2006. {``Unsupervised Learning of Image Manifolds by Semidefinite Programming.''} \emph{Int. J. Comput. Vis.} 70 (1): 77--90.
+Weinberger, Kilian Q, and Lawrence K Saul. 2006. ``Unsupervised Learning of Image Manifolds by Semidefinite Programming.'' \emph{Int. J. Comput. Vis.} 70 (1): 77--90.
 
 \leavevmode\hypertarget{ref-Zhang2003-yi}{}%
-Zhang, Zhenyue, and Hongyuan Zha. 2003. {``Nonlinear Dimension Reduction via Local Tangent Space Alignment.''} In \emph{Intelligent Data Engineering and Automated Learning}, 477--81. Springer Berlin Heidelberg.
+Zhang, Zhenyue, and Hongyuan Zha. 2003. ``Nonlinear Dimension Reduction via Local Tangent Space Alignment.'' In \emph{Intelligent Data Engineering and Automated Learning}, 477--81. Springer Berlin Heidelberg.
 
 \leavevmode\hypertarget{ref-Zhu2018-jw}{}%
-Zhu, Bo, Jeremiah Z Liu, Stephen F Cauley, Bruce R Rosen, and Matthew S Rosen. 2018. {``Image Reconstruction by Domain-Transform Manifold Learning.''} \emph{Nature} 555 (7697): 487--92.
-
-\end{CSLReferences}
+Zhu, Bo, Jeremiah Z Liu, Stephen F Cauley, Bruce R Rosen, and Matthew S Rosen. 2018. ``Image Reconstruction by Domain-Transform Manifold Learning.'' \emph{Nature} 555 (7697): 487--92.
+\end{cslreferences}
 
 \bibliographystyle{agsm}
 \bibliography{references.bib}
