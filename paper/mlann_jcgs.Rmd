@@ -36,8 +36,4 @@ link-citations: yes
 
 ```
 
-# Supplementary Materials {-}
-
-The GitHub repository, https://github.com/ffancheng/paper-mlann, contains all materials required to reproduce this article. The code and data files are also available online in the same repository.
-
 # References {-}
