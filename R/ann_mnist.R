@@ -4,22 +4,31 @@ library(dimRed)
 library(pryr)
 Jmisc::sourceAll("R/sources")
 set.seed(1)
-N <- 1000
-scen <- 1 # If running within R uncomment this. This will only run first scenario
-# scen <- as.numeric(commandArgs()[[6]]) # If running batch job uncomment this, array=1-804
+N <- 10000
+# scen <- 1 # If running within R uncomment this. This will only run first scenario
+scen <- as.numeric(commandArgs()[[6]]) # If running batch job uncomment this, array=1-804
 
+message("Started at: ", Sys.time())
 train <- readRDS("data/mnist_test10k.rds")
 train <- train[1:N, ]
 mem_used()
 
 # for each method, change 2 lines with #
-D <- 5
+D <- 2
 K <- 20
+perplexity <- 7 # (K/3)
+theta <- 0.5
+min_dist <- 0.1
+n_epochs <- 200
 
 # True NN
-mnist_nn <- RANN::nn2(train, query = train, k = K+1, treetype = "kd", searchtype = "standard", eps = 0)$nn.idx[, -1]
+if(N < 10000) {
+  mnist_nn <- RANN::nn2(train, query = train, k = K+1, treetype = "kd", searchtype = "standard", eps = 0)$nn.idx[, -1]
+} else {
+  mnist_nn <- readRDS("data/mnist_test10k_truenn_K20.rds")
+}
 
-ml <- c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE")#[-3]
+ml <- c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE", "anntSNE", "annUMAP")
 # annmethod <- c("kdtree", "annoy", "hnsw")
 # params <- c("epsilon", "ntrees", "nlinks")
 # (simtable <- tidyr::expand_grid(ml, data.frame(annmethod, params) ))
@@ -33,7 +42,7 @@ simtable <- expand_grid(ml = ml,
                           expand_grid(annmethod = "annoy", param = "ntrees", value = ntrees),
                           expand_grid(annmethod = "hnsw", param = "nlinks", value = nlinks) )) 
 simtable
-# (51+50+100) * 4 = 804
+# 51+50+100 = 201
 
 (simj <- simtable[scen,]) # Extract row of table
 method <- simj$ml 
@@ -47,21 +56,23 @@ n_table <- ncol(ann_table)
 mem_used()
 
 message(Sys.time(), "\t", param_name, "=", par)
-ntimes <- 10
+if(N < 10000) ntimes <- 1 else ntimes <- 10
 suppressMessages(
   compute <- microbenchmark::microbenchmark(
     {e <- replicate(n = ntimes,
                     dimRed::embed(train, .method = method, knn = K, annmethod = annmethod,
+                                  perplexity = perplexity, theta = theta, # tSNE
+                                  min_dist = min_dist, n_epochs = n_epochs, input = "data", # UMAP
                                   eps = par,
                                   nt = par,
                                   nlinks = par, ef.construction = 500,
                                   ndim = D, .mute = c("output")))
     },
-    times = 1, 
+    times = ntimes, 
     unit = "s"
   )
 )
-ann_table$time <- compute$time*1e-9 / ntimes # summary(compute)$median
+ann_table$time <- sum(compute$time*1e-9) / ntimes # summary(compute)$median
 ann_table$qps <- nrow(train) / ann_table$time 
 
 steps.time <- matrix(NA, ntimes, 3)
@@ -85,6 +96,7 @@ for(j in 1:N){
 ann_table$recall <- mean(mat_recall)
 
 ann_table
+ann_table[,7:15]
 saveRDS(ann_table, file = paste0("annmnist/", "anntable_", method, "_", annmethod, "_", par, "_MNISTtest_", N,".rds"))
 
 # save the list containing all embedding results, each replicated ntimes

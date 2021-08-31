@@ -49,33 +49,56 @@ annHLLE <- setClass(
         #                    treetype = "kd", "standard", eps = pars$eps)$nn.idx#[, -1]
       # }
       
+      # knn_time <- microbenchmark::microbenchmark(
+      #   base::switch(annmethod,
+      #                "kdtree" = {
+      #                  message(Sys.time(), ": Finding ANN using ", annmethod, sep = "")
+      #                  treetype <- "kd"                
+      #                  searchtype <- "priority"
+      #                  nnidx <- base::switch(pars$distance,
+      #                                        "euclidean" = {RANN::nn2(data = indata, query = indata, k = pars$knn + 1, treetype = treetype, searchtype = searchtype, eps = pars$eps)$nn.idx},
+      #                                        "manhattan" = {RANN.L1::nn2(data = indata, query = indata, k = pars$knn + 1, treetype = treetype, searchtype = searchtype, eps = pars$eps)$nn.idx})
+      #                },
+      #                "annoy"   = {
+      #                  message(Sys.time(), ": Finding ANN using ", annmethod, sep = "")
+      #                  nnidx <- base::switch(pars$distance,
+      #                                        "euclidean" = {BiocNeighbors::queryKNN(X = indata, query = indata, k = pars$knn + 1, BNPARAM = AnnoyParam(ntrees = pars$nt, distance = "Euclidean"))$index},
+      #                                        "manhattan" = {BiocNeighbors::queryKNN(X = indata, query = indata, k = pars$knn + 1, BNPARAM = AnnoyParam(ntrees = pars$nt, distance = "Manhattan"))$index})
+      #                }, 
+      #                "hnsw"    = {
+      #                  message(Sys.time(), ": Finding ANN using ", annmethod, sep = "")
+      #                  nnidx <- base::switch(pars$distance,
+      #                                        "euclidean" = {BiocNeighbors::queryKNN(X = indata, query = indata, k = pars$knn + 1, BNPARAM = HnswParam(nlinks = pars$nlinks, ef.construction = pars$ef.construction, distance = "Euclidean"))$index},
+      #                                        "manhattan" = {BiocNeighbors::queryKNN(X = indata, query = indata, k = pars$knn + 1, BNPARAM = HnswParam(nlinks = pars$nlinks, ef.construction = pars$ef.construction, distance = "Manhattan"))$index})
+      #                }
+      #   ),
+      #   times = 1,
+      #   unit = "s"
+      # )#$time * 1e-9  
+      # knn_time <- summary(knn_time)$median
+      
+      
+      message(Sys.time(), ": Finding ANN using ", annmethod, sep = "")
       knn_time <- microbenchmark::microbenchmark(
-        base::switch(annmethod,
-                     "kdtree" = {
-                       message(Sys.time(), ": Finding ANN using ", annmethod, sep = "")
-                       treetype <- "kd"                
-                       searchtype <- "priority"
-                       nnidx <- base::switch(pars$distance,
-                                             "euclidean" = {RANN::nn2(data = indata, query = indata, k = pars$knn + 1, treetype = treetype, searchtype = searchtype, eps = pars$eps)$nn.idx},
-                                             "manhattan" = {RANN.L1::nn2(data = indata, query = indata, k = pars$knn + 1, treetype = treetype, searchtype = searchtype, eps = pars$eps)$nn.idx})
-                     },
-                     "annoy"   = {
-                       message(Sys.time(), ": Finding ANN using ", annmethod, sep = "")
-                       nnidx <- base::switch(pars$distance,
-                                             "euclidean" = {BiocNeighbors::queryKNN(X = indata, query = indata, k = pars$knn + 1, BNPARAM = AnnoyParam(ntrees = pars$nt, distance = "Euclidean"))$index},
-                                             "manhattan" = {BiocNeighbors::queryKNN(X = indata, query = indata, k = pars$knn + 1, BNPARAM = AnnoyParam(ntrees = pars$nt, distance = "Manhattan"))$index})
-                     }, 
-                     "hnsw"    = {
-                       message(Sys.time(), ": Finding ANN using ", annmethod, sep = "")
-                       nnidx <- base::switch(pars$distance,
-                                             "euclidean" = {BiocNeighbors::queryKNN(X = indata, query = indata, k = pars$knn + 1, BNPARAM = HnswParam(nlinks = pars$nlinks, ef.construction = pars$ef.construction, distance = "Euclidean"))$index},
-                                             "manhattan" = {BiocNeighbors::queryKNN(X = indata, query = indata, k = pars$knn + 1, BNPARAM = HnswParam(nlinks = pars$nlinks, ef.construction = pars$ef.construction, distance = "Manhattan"))$index})
-                     }
-        ),
+        nn2res <- find_ann(x = indata, 
+                           knn = pars$knn,
+                           get_geod = FALSE,
+                           annmethod = pars$annmethod, 
+                           eps = pars$eps, 
+                           radius = pars$radius,
+                           nt = pars$nt, 
+                           nlinks = pars$nlinks, 
+                           ef.construction = pars$ef.construction,
+                           ef.search = pars$ef.search,
+                           distance = pars$distance,
+                           treetype = pars$treetype,
+                           searchtype = pars$searchtype),
         times = 1,
         unit = "s"
-      )#$time * 1e-9  
+      )#$time * 1e-9
       knn_time <- summary(knn_time)$median
+      nnidx <- nn2res$nn.idx
+      
       
       message(Sys.time(), ": Calculating Hessian", sep = "")
       hessian_time <- microbenchmark::microbenchmark(

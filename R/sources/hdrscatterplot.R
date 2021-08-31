@@ -96,3 +96,4 @@ hdrscatterplot <- function(x, y, levels = c(1, 50, 99), kde.package = c("ash", "
   }
   return(p)
 }
+

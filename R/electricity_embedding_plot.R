@@ -29,7 +29,7 @@ nid <- 1
 ntow <- 336
 len <- 201
 filename <- paste0(nid, "id_", ntow, "tow_", len, "length")
-load(paste0('data/spdemand_3639id_336tow_201length.rda')) # (3639*336)*203
+load(paste0('data/spdemand_3639id336tow.rda')) # (3639*336)*203
 train <- spdemand %>%
   lazy_dt() %>%
   # filter(id <= sort(unique(spdemand[,id]))[nid],
@@ -40,6 +40,7 @@ train <- spdemand %>%
 # mem_change(rm(spdemand))
 N <- nrow(train)
 ids <- spdemand %>% dtplyr::lazy_dt() %>% pull(id) %>% unique() %>% sort()
+folder <- "data/oneid/"
 ###------------------------------------------------------
 
 
@@ -53,6 +54,7 @@ load(paste0('data/spdemand_', filename, '.rda')) # 3639*(336*201+1)
 train <- spdemand[, !"id"]
 N <- nrow(train)
 ids <- spdemand %>% dtplyr::lazy_dt() %>% pull(id) %>% unique() %>% sort()
+folder <- "data/allids/"
 ###------------------------------------------------------
 
 
@@ -66,6 +68,7 @@ load(paste0('data/spdemand_', filename, '.rda')) # 3639*(336*201+1)
 train <- spdemand[, !"id"]#[1:100,]
 N <- nrow(train)
 ids <- spdemand %>% dtplyr::lazy_dt() %>% pull(id) %>% unique() %>% sort()
+folder <- "data/allids/"
 ###------------------------------------------------------
 
 
@@ -273,8 +276,8 @@ ann_table_isomap
 # Annoy     0.001669152  0.5593708 0.2756413 0.9939819 11.95033
 save(isomapnn, isomapann, isomapann_annoy, ann_table_isomap, pars, eps, nt, isomapNNtime, isomapANNtime, isomapANNtime_annoy, 
      # Y_isomap, Y_annisomap, Y_annisomap_annoy, 
-     file = paste0('data/electricityplot_', method0, "_kdtree_eps", eps, "_", filename, '.rda') # for k-d trees
-     # file = paste0('data/electricityplot/electricityplot_', method0, "_", annmethod, "_nt", nt, "_", filename, '.rda') # for Annoy
+     file = paste0(folder, 'electricityplot_', method0, "_kdtree_eps", eps, "_notow", filename, '.rda') # for k-d trees
+     # file = paste0(folder, 'electricityplot/electricityplot_', method0, "_", annmethod, "_nt", nt, "_", filename, '.rda') # for Annoy
      )
 
 
@@ -350,8 +353,8 @@ all.equal(ann_table_llenn, ann_table_lleann)
 
 save(llenn, lleann, lleann_annoy, ann_table_lle, pars, eps, lleNNtime, lleANNtime, lleANNtime_annoy,
      # Y_lle, Y_annlle, Y_annlle_annoy, 
-     file = paste0('data/electricityplot_', method0, "_kdtree_eps", eps, "_", filename, '.rda') # for k-d trees
-     # file = paste0('data/electricityplot/electricityplot_', method0, "_", annmethod, "_nt", nt, "_", filename, '.rda') # for Annoy
+     file = paste0(folder, 'electricityplot_', method0, "_kdtree_eps", eps, "_notow", filename, '.rda') # for k-d trees
+     # file = paste0(folder, 'electricityplot/electricityplot_', method0, "_", annmethod, "_nt", nt, "_", filename, '.rda') # for Annoy
      )
 
 
@@ -428,8 +431,8 @@ all.equal(ann_table_lenn, ann_table_leann)
 
 save(lenn, leann, leann_annoy, ann_table_le, pars, eps, leNNtime, leANNtime, leANNtime_annoy, 
      # Y_le, Y_annle, Y_annle_annoy, 
-     file = paste0('data/electricityplot_', method0, "_kdtree_eps", eps, "_", filename, '.rda') # for k-d trees
-     # file = paste0('data/electricityplot/electricityplot_', method0, "_", annmethod, "_nt", nt, "_", filename, '.rda') # for Annoy
+     file = paste0(folder, 'electricityplot_', method0, "_kdtree_eps", eps, "_notow", filename, '.rda') # for k-d trees
+     # file = paste0(folder, 'electricityplot/electricityplot_', method0, "_", annmethod, "_nt", nt, "_", filename, '.rda') # for Annoy
      )
 
 ###-------------------------------------------------
@@ -508,14 +511,171 @@ all.equal(ann_table_hlleann, ann_table_hlleann_annoy)
 
 save(hllenn, hlleann, hlleann_annoy, ann_table_hlle, pars, eps, hlleNNtime, hlleANNtime, hlleANNtime_annoy, 
      # Y_hlle, Y_annhlle, Y_annhlle_annoy, 
-     file = paste0('data/electricityplot_', method0, "_kdtree_eps", eps, "_", filename, '.rda') # for k-d trees
-     # file = paste0('data/electricityplot/electricityplot_', method0, "_", annmethod, "_nt", nt, "_", filename, '.rda') # for Annoy
+     file = paste0(folder, 'electricityplot_', method0, "_kdtree_eps", eps, "_notow", filename, '.rda') # for k-d trees
+     # file = paste0(folder, 'electricityplot/electricityplot_', method0, "_", annmethod, "_nt", nt, "_", filename, '.rda') # for Annoy
      )
 
 # Y_hlle %>% filter(HLLE2 > 0.1) # three outliers on the top-right corner
 # which(Y_hlle$HLLE2 > 0.1) # 296 298 300, Sunday morning 4-5am
 # train[which(Y_hlle$HLLE2 > 0.1)[1],] %>% plot(1:201, ., type = "l") 
 
+
+
+###-------------------------------------------------
+### t-SNE
+###-------------------------------------------------
+method0 <- "tSNE"
+method <- paste0("ann", method0)
+
+tsneNNtime <- microbenchmark::microbenchmark(
+  {tsnenn <- embed(train, .method = method, knn = pars$knn,
+                   annmethod = "kdtree",
+                   eps = pars$eps,
+                   nt = pars$nt,
+                   nlinks = pars$nlinks, ef.construction = 500,
+                   ndim = pars$ndim, distance = pars$distance, .mute = c("output"))},
+  times=ntimes, 
+  unit = "s"
+)
+
+tsneANNtime <- microbenchmark::microbenchmark(
+  {tsneann <- embed(train, .method = method, knn = pars$knn,
+                    annmethod = "kdtree",
+                    eps = eps,
+                    nt = pars$nt,
+                    nlinks = pars$nlinks, ef.construction = 500,
+                    ndim = pars$ndim, distance = pars$distance, .mute = c("output"))},
+  times=ntimes, 
+  unit = "s"
+)
+
+tsneANNtime_annoy <- microbenchmark::microbenchmark(
+  {tsneann_annoy <- embed(train, .method = method, knn = pars$knn,
+                          annmethod = "annoy",
+                          eps = eps,
+                          nt = pars$nt, search.k = pars$search.k,
+                          nlinks = pars$nlinks, ef.construction = 500,
+                          ndim = pars$ndim, distance = pars$distance, .mute = c("output"))},
+  times=ntimes, 
+  unit = "s"
+)
+Y_tsne <- tsnenn@data@data %>% as.data.frame()
+Y_anntsne <- tsneann@data@data %>% as.data.frame()
+Y_anntsne_annoy <- tsneann_annoy@data@data %>% as.data.frame()
+
+all.equal(Y_anntsne, Y_anntsne_annoy)
+# par(mfrow=c(1,2))
+# plot(Y_tsne)
+# plot(Y_anntsne)
+
+
+(tsneNNmed <- summary(tsneNNtime)$median)
+(tsneANNmed <- summary(tsneANNtime)$median)
+(tsneANNmed_annoy <- summary(tsneANNtime_annoy)$median)
+(tsneNNmed - tsneANNmed)/tsneNNmed
+(tsneNNmed - tsneANNmed_annoy)/tsneNNmed
+# Calculate embedding quality measures
+ann_table_tsnenn <- calc_ann_table(e=tsnenn, nn.idx=truenn)
+ann_table_tsneann <- calc_ann_table(e=tsneann, nn.idx=truenn)
+ann_table_tsneann_annoy <- calc_ann_table(e=tsneann_annoy, nn.idx=truenn)
+ann_table_tsne <- bind_rows(ann_table_tsnenn, ann_table_tsneann, ann_table_tsneann_annoy) %>% 
+  mutate(time = c(tsneNNmed, tsneANNmed, tsneANNmed_annoy))
+row.names(ann_table_tsne) <- c("Exact NN", "k-d trees", "Annoy")
+ann_table_tsne
+# M_T       M_C       LCMC        Qnx       W_n
+# Exact NN  0.8856043 0.8939552 0.12956705 0.13506458 0.1117472
+# k-d trees 0.9187908 0.8054756 0.06619799 0.07169552 0.0777555
+# Annoy     0.9187908 0.8054756 0.06619799 0.07169552 0.0777555
+# W_nu Procrustes        Rnx    recall     time
+# Exact NN  0.001496074  0.7815187 0.13028329 0.6369332 7.416225
+# k-d trees 0.001515136  0.7918193 0.06656393 0.6378675 6.269016
+# Annoy     0.001515136  0.7918193 0.06656393 0.6378675 6.313746
+all.equal(ann_table_tsneann, ann_table_tsneann_annoy)
+
+save(tsnenn, tsneann, tsneann_annoy, ann_table_tsne, pars, eps, tsneNNtime, tsneANNtime, tsneANNtime_annoy, 
+     # Y_tsne, Y_anntsne, Y_anntsne_annoy, 
+     file = paste0(folder, 'electricityplot_', method0, "_kdtree_eps", eps, "_notow", filename, '.rda') # for k-d trees
+     # file = paste0(folder, 'electricityplot/electricityplot_', method0, "_", annmethod, "_nt", nt, "_", filename, '.rda') # for Annoy
+)
+
+
+
+
+###-------------------------------------------------
+### UMAP
+###-------------------------------------------------
+method0 <- "UMAP"
+method <- paste0("ann", method0)
+
+umapNNtime <- microbenchmark::microbenchmark(
+  {umapnn <- embed(train, .method = method, knn = pars$knn,
+                   annmethod = "kdtree",
+                   eps = pars$eps,
+                   nt = pars$nt,
+                   nlinks = pars$nlinks, ef.construction = 500,
+                   ndim = pars$ndim, distance = pars$distance, .mute = c("output"))},
+  times=ntimes, 
+  unit = "s"
+)
+
+umapANNtime <- microbenchmark::microbenchmark(
+  {umapann <- embed(train, .method = method, knn = pars$knn,
+                    annmethod = "kdtree",
+                    eps = eps,
+                    nt = pars$nt,
+                    nlinks = pars$nlinks, ef.construction = 500,
+                    ndim = pars$ndim, distance = pars$distance, .mute = c("output"))},
+  times=ntimes, 
+  unit = "s"
+)
+
+umapANNtime_annoy <- microbenchmark::microbenchmark(
+  {umapann_annoy <- embed(train, .method = method, knn = pars$knn,
+                          annmethod = "annoy",
+                          eps = eps,
+                          nt = pars$nt, search.k = pars$search.k,
+                          nlinks = pars$nlinks, ef.construction = 500,
+                          ndim = pars$ndim, distance = pars$distance, .mute = c("output"))},
+  times=ntimes, 
+  unit = "s"
+)
+Y_umap <- umapnn@data@data %>% as.data.frame()
+Y_annumap <- umapann@data@data %>% as.data.frame()
+Y_annumap_annoy <- umapann_annoy@data@data %>% as.data.frame()
+
+all.equal(Y_annumap, Y_annumap_annoy)
+# par(mfrow=c(1,2))
+# plot(Y_umap)
+# plot(Y_annumap)
+
+(umapNNmed <- summary(umapNNtime)$median)
+(umapANNmed <- summary(umapANNtime)$median)
+(umapANNmed_annoy <- summary(umapANNtime_annoy)$median)
+(umapNNmed - umapANNmed)/umapNNmed
+(umapNNmed - umapANNmed_annoy)/umapNNmed
+# Calculate embedding quality measures
+ann_table_umapnn <- calc_ann_table(e=umapnn, nn.idx=truenn)
+ann_table_umapann <- calc_ann_table(e=umapann, nn.idx=truenn)
+ann_table_umapann_annoy <- calc_ann_table(e=umapann_annoy, nn.idx=truenn)
+ann_table_umap <- bind_rows(ann_table_umapnn, ann_table_umapann, ann_table_umapann_annoy) %>% 
+  mutate(time = c(umapNNmed, umapANNmed, umapANNmed_annoy))
+row.names(ann_table_umap) <- c("Exact NN", "k-d trees", "Annoy")
+ann_table_umap
+# M_T       M_C       LCMC        Qnx       W_n
+# Exact NN  0.8856043 0.8939552 0.12956705 0.13506458 0.1117472
+# k-d trees 0.9187908 0.8054756 0.06619799 0.07169552 0.0777555
+# Annoy     0.9187908 0.8054756 0.06619799 0.07169552 0.0777555
+# W_nu Procrustes        Rnx    recall     time
+# Exact NN  0.001496074  0.7815187 0.13028329 0.6369332 7.416225
+# k-d trees 0.001515136  0.7918193 0.06656393 0.6378675 6.269016
+# Annoy     0.001515136  0.7918193 0.06656393 0.6378675 6.313746
+all.equal(ann_table_umapann, ann_table_umapann_annoy)
+
+save(umapnn, umapann, umapann_annoy, ann_table_umap, pars, eps, umapNNtime, umapANNtime, umapANNtime_annoy, 
+     # Y_umap, Y_annumap, Y_annumap_annoy, 
+     file = paste0(folder, 'electricityplot_', method0, "_kdtree_eps", eps, "_notow", filename, '.rda') # for k-d trees
+     # file = paste0(folder, 'electricityplot/electricityplot_', method0, "_", annmethod, "_nt", nt, "_", filename, '.rda') # for Annoy
+)
 
 
 
@@ -527,11 +687,13 @@ trustworthiness_1id <- bind_cols(
   Isomap = ann_table_isomap[,measure],
   LLE = ann_table_lle[,measure],
   "Laplacian Eigenmaps" = ann_table_le[,measure],
-  "Hessian LLE" = ann_table_hlle[,measure]
+  "Hessian LLE" = ann_table_hlle[,measure],
+  "t-SNE" = ann_table_tsne[,measure],
+  UMAP = ann_table_umap[,measure]
 ) %>% as.data.frame()
 rownames(trustworthiness_1id) <- c("Exact NN", "ANN k-d trees", "ANN Annoy")
 trustworthiness_1id
-save(trustworthiness_1id, file = paste0('data/electricityplot_trustworthiness_nt', nt, "_", filename, '.rda'))
+save(trustworthiness_1id, file = paste0(folder, 'electricityplot_trustworthiness_nt', nt, "_notow", filename, '.rda'))
 
 ### Running time
 measure <- "time"
@@ -539,11 +701,13 @@ time_allid <- bind_cols(
   Isomap = ann_table_isomap[,measure],
   LLE = ann_table_lle[,measure],
   "Laplacian Eigenmaps" = ann_table_le[,measure],
-  "Hessian LLE" = ann_table_hlle[,measure]
+  "Hessian LLE" = ann_table_hlle[,measure],
+  "t-SNE" = ann_table_tsne[,measure],
+   UMAP = ann_table_umap[,measure]
 ) %>% as.data.frame()
 rownames(time_allid) <- c("Exact NN", "ANN k-d trees", "ANN Annoy")
 time_allid
-save(time_allid, file = paste0('data/electricityplot_time_nt', nt, "_", filename, '.rda'))
+save(time_allid, file = paste0(folder, 'electricityplot_time_nt', nt, "_notow", filename, '.rda'))
 
 # Isomap      LLE Laplacian Eigenmaps Hessian LLE
 # Exact NN      2.148260 2.925752            2.161146    1.648907
@@ -561,13 +725,15 @@ save(time_allid, file = paste0('data/electricityplot_time_nt', nt, "_", filename
 ###-------------------------------------------------
 ### plotting
 ###-------------------------------------------------
-# load four plotting data files in data/electricityplot_Isomap_eps1_1id336tow.rda
+# load four plotting data files in data/electricityplot_Isomap_kdtree_eps1_1id336tow.rda
 # embedding plot
-par(mfrow=c(2,2))
+par(mfrow=c(2,3))
 plot(Y_isomap)
 plot(Y_lle)
 plot(Y_le)
 plot(Y_hlle)
+plot(Y_tsne)
+plot(Y_umap)
 
 # KNN
 p1 <- Y_isomap %>% 
@@ -582,6 +748,12 @@ p3 <- Y_le %>%
 p4 <- Y_hlle %>% 
   ggplot(aes(x=HLLE1, y=HLLE2)) + 
   geom_point()
+p5 <- Y_tsne %>% 
+  ggplot(aes(x=tSNE1, y=tSNE2)) + 
+  geom_point()
+p6 <- Y_umap %>% 
+  ggplot(aes(x=UMAP1, y=UMAP2)) + 
+  geom_point()
 # ANN
 pa1 <- Y_annisomap %>% 
   ggplot(aes(x=ISO1, y=ISO2)) + 
@@ -595,6 +767,12 @@ pa3 <- Y_annle %>%
 pa4 <- Y_annhlle %>% 
   ggplot(aes(x=HLLE1, y=HLLE2)) + 
   geom_point() 
+pa5 <- Y_anntsne %>% 
+  ggplot(aes(x=tSNE1, y=tSNE2)) + 
+  geom_point()
+pa6 <- Y_annumap %>% 
+  ggplot(aes(x=UMAP1, y=UMAP2)) + 
+  geom_point()
 # ANN - Annoy
 paa1 <- Y_annisomap_annoy %>% 
   ggplot(aes(x=ISO1, y=ISO2)) + 
@@ -608,15 +786,23 @@ paa3 <- Y_annle_annoy %>%
 paa4 <- Y_annhlle_annoy %>% 
   ggplot(aes(x=HLLE1, y=HLLE2)) + 
   geom_point() 
+paa5 <- Y_anntsne_annoy %>% 
+  ggplot(aes(x=tSNE1, y=tSNE2)) + 
+  geom_point()
+paa6 <- Y_annumap_annoy %>% 
+  ggplot(aes(x=UMAP1, y=UMAP2)) + 
+  geom_point()
 
 # embedding
 # (p1 + p2) / (p3 + p4) | (pa1 + pa2) / (pa3 + pa4)
 # (p1 / pa1) | (p2 / pa2) | (p3 / pa3) | (p4 / pa4)
 
-emb <- ((p1 + labs(title = "Isomap")) / pa1 / paa1) | 
+emb <- ((p1 + labs(title = "ISOMAP")) / pa1 / paa1) | 
   ((p2 + labs(title = "LLE")) / pa2 / paa2) | 
   ((p3 + labs(title = "Laplacian Eigenmaps")) / pa3 / paa3) | 
-  ((p4 + labs(title = "Hessian LLE")) / pa4 / paa4) 
+  ((p4 + labs(title = "Hessian LLE")) / pa4 / paa4) |
+  ((p5 + labs(title = "t-SNE")) / pa5 / paa5) |
+  ((p6 + labs(title = "UMAP")) / pa6 / paa6) 
 # &
 #   theme(plot.title = element_text(hjust=0.5, size = 12))
 # embedding_compare.png
@@ -667,16 +853,22 @@ t1 <- cbind(period, Y_isomap)
 t2 <- cbind(period, Y_lle)
 t3 <- cbind(period, Y_le)
 t4 <- cbind(period, Y_hlle)
+t5 <- cbind(period, Y_tsne)
+t6 <- cbind(period, Y_umap)
 
 ta1 <- cbind(period, Y_annisomap)
 ta2 <- cbind(period, Y_annlle)
 ta3 <- cbind(period, Y_annle)
 ta4 <- cbind(period, Y_annhlle)
+ta5 <- cbind(period, Y_anntsne)
+ta6 <- cbind(period, Y_annumap)
 
 taa1 <- cbind(period, Y_annisomap_annoy)
 taa2 <- cbind(period, Y_annlle_annoy)
 taa3 <- cbind(period, Y_annle_annoy)
 taa4 <- cbind(period, Y_annhlle_annoy)
+taa5 <- cbind(period, Y_anntsne_annoy)
+taa6 <- cbind(period, Y_annumap_annoy)
 
 todcolor <- colorspace::scale_color_continuous_sequential(
   palette = "viridis",
@@ -701,6 +893,14 @@ pt4 <- t4 %>%
   ggplot(aes(x=HLLE1, y=HLLE2, color=tod)) +
   geom_point() +
   todcolor
+pt5 <- t5 %>%
+  ggplot(aes(x=tSNE1, y=tSNE2, color=tod)) +
+  geom_point() +
+  todcolor
+pt6 <- t6 %>%
+  ggplot(aes(x=UMAP1, y=UMAP2, color=tod)) +
+  geom_point() +
+  todcolor
 
 pta1 <- ta1 %>%
   ggplot(aes(x=ISO1, y=ISO2, color=tod)) +
@@ -716,6 +916,14 @@ pta3 <- ta3 %>%
   todcolor
 pta4 <- ta4 %>%
   ggplot(aes(x=HLLE1, y=HLLE2, color=tod)) +
+  geom_point() +
+  todcolor
+pta5 <- ta5 %>%
+  ggplot(aes(x=tSNE1, y=tSNE2, color=tod)) +
+  geom_point() +
+  todcolor
+pta6 <- ta6 %>%
+  ggplot(aes(x=UMAP1, y=UMAP2, color=tod)) +
   geom_point() +
   todcolor
 
@@ -735,28 +943,63 @@ ptaa4 <- taa4 %>%
   ggplot(aes(x=HLLE1, y=HLLE2, color=tod)) +
   geom_point() +
   todcolor
+ptaa5 <- taa5 %>%
+  ggplot(aes(x=tSNE1, y=tSNE2, color=tod)) +
+  geom_point() +
+  todcolor
+ptaa6 <- taa6 %>%
+  ggplot(aes(x=UMAP1, y=UMAP2, color=tod)) +
+  geom_point() +
+  todcolor
 
 (pt1 + pt2) /
-  (pt3 + pt4) +
+  (pt3 + pt4) /
+  (pt5 + pt6) +
   plot_layout(guides = "collect") &
   theme(legend.position = 'bottom')
 # tod_1id336tow.png
 
-tod <- (((pt1 + labs(title = "Isomap")) / pta1 / ptaa1) |
-          ((pt2 + labs(title = "LLE")) / pta2 / ptaa2) |
-          ((pt3 + labs(title = "Laplacian Eigenmaps")) / pta3 / ptaa3) |
-          ((pt4 + labs(title = "Hessian LLE")) / pta4 / ptaa4)) +
+nolab <- labs(x="", y="")
+tod <- (((pt1 + labs(title = "ISOMAP", x = "", y = "Exact NN")) / (pta1+labs(x="", y="k-d trees")) / (ptaa1+labs(x="", y="Annoy"))) |
+          ((pt2 + labs(title = "LLE") + nolab) / (pta2+nolab) / (ptaa2+nolab)) |
+          ((pt3 + labs(title = "Laplacian Eigenmaps") + nolab) / (pta3+nolab) / (ptaa3+nolab)) |
+          ((pt4 + labs(title = "Hessian LLE") + nolab) / (pta4+nolab) / (ptaa4+nolab)) |
+          ((pt5 + labs(title = "t-SNE") + nolab) / (pta5+nolab) / (ptaa5+nolab)) |
+          ((pt6 + labs(title = "UMAP") + nolab) / (pta6+nolab) / (ptaa6+nolab))
+        ) +
   plot_layout(guides = "collect") &
-  theme(legend.position = 'bottom')
-
-# tod <- ((pt1 / pta1) | (pt2 / pta2) | (pt3 / pta3) | (pt4 / pta4)) +
-#   plot_layout(guides = "collect") &
-#   theme(legend.position = 'bottom') &
-#   guides(color=guide_legend(nro=w=3,byrow=TRUE)) &
-#   labs(color="Time of day")
+  theme(legend.position = 'bottom', 
+        axis.title.y = element_text(hjust = 0.5, face = "bold", size = 14),
+        plot.title = element_text(hjust = 0.5)) 
 tod
 # tod_compare_1id336tow.png
-ggsave(paste0("paper/figures/tod_compare_kdtreeannoy_", filename, ".png"), tod, width=10, height=6)
+ggsave(paste0("paper/figures/tod_compare_kdtreeannoy_6methods_", filename, ".png"), tod, width=10, height=6, dpi = 500)
+
+# transpose the same plot
+tod_t <- (((pt1 + labs(title = "Exact NN", x="", y="ISOMAP")) | 
+          (pta1 + labs(title = "k-d trees", x="", y="")) |
+          (ptaa1 + labs(title = "Annoy", x="", y="")))  / 
+         ((pt2 + labs(x="", y="LLE")) | 
+            (pta2 + labs(x="", y="")) |
+            (ptaa2 + labs(x="", y=""))) / 
+         ((pt3 + labs(x="", y="Laplacian Eigenmaps")) | 
+            (pta3 + labs(x="", y="")) |
+            (ptaa3 + labs(x="", y=""))) / 
+         ((pt4 + labs(x="", y="Hessian LLE")) | 
+            (pta4 + labs(x="", y="")) |
+            (ptaa4 + labs(x="", y=""))) /
+         ((pt5 + labs(x="", y="t-SNE")) | 
+            (pta5 + labs(x="", y="")) |
+            (ptaa5 + labs(x="", y=""))) /
+         ((pt6 + labs(x="", y="UMAP")) | 
+            (pta6 + labs(x="", y="")) |
+            (ptaa6 + labs(x="", y="")))
+) + 
+  plot_layout(guides = "collect") &
+  theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5, face = "bold")) 
+tod_t
+
+ggsave(paste0("paper/figures/tod_compare_kdtreeannoy_6methods_", filename, "_transpose.png"), tod_t, width=8, height=11, dpi = 500)
 
 
 
@@ -767,45 +1010,89 @@ ggsave(paste0("paper/figures/tod_compare_kdtreeannoy_", filename, ".png"), tod, 
 # library(hdrcde)
 nout <- 10
 levels <- c(1, 20, 40, 60, 80, 99)
+if(folder == "data/oneid/") ids <- 1:336 # run this for single ID
 ph1 <- hdrscatterplot(x = Y_isomap[,1], y = Y_isomap[,2], levels, noutliers = nout, label = ids)
 ph2 <- hdrscatterplot(x = Y_lle[,1], y = Y_lle[,2], levels, noutliers = nout, label = ids)
 ph3 <- hdrscatterplot(x = Y_le[,1], y = Y_le[,2], levels, noutliers = nout, label = ids)
 ph4 <- hdrscatterplot(x = Y_hlle[,1], y = Y_hlle[,2], levels, noutliers = nout, label = ids)
+ph5 <- hdrscatterplot(x = Y_tsne[,1], y = Y_tsne[,2], levels, noutliers = nout, label = ids)
+ph6 <- hdrscatterplot(x = Y_umap[,1], y = Y_umap[,2], levels, noutliers = nout, label = ids)
 
 pha1 <- hdrscatterplot(x = Y_annisomap[,1], y = Y_annisomap[,2], levels, noutliers = nout, label = ids)
 pha2 <- hdrscatterplot(x = Y_annlle[,1], y = Y_annlle[,2], levels, noutliers = nout, label = ids)
 pha3 <- hdrscatterplot(x = Y_annle[,1], y = Y_annle[,2], levels, noutliers = nout, label = ids)
 pha4 <- hdrscatterplot(x = Y_annhlle[,1], y = Y_annhlle[,2], levels, noutliers = nout, label = ids)
+pha5 <- hdrscatterplot(x = Y_anntsne[,1], y = Y_anntsne[,2], levels, noutliers = nout, label = ids)
+pha6 <- hdrscatterplot(x = Y_annumap[,1], y = Y_annumap[,2], levels, noutliers = nout, label = ids)
 
 phaa1 <- hdrscatterplot(x = Y_annisomap_annoy[,1], y = Y_annisomap_annoy[,2], levels, noutliers = nout, label = ids)
 phaa2 <- hdrscatterplot(x = Y_annlle_annoy[,1], y = Y_annlle_annoy[,2], levels, noutliers = nout, label = ids)
 phaa3 <- hdrscatterplot(x = Y_annle_annoy[,1], y = Y_annle_annoy[,2], levels, noutliers = nout, label = ids)
 phaa4 <- hdrscatterplot(x = Y_annhlle_annoy[,1], y = Y_annhlle_annoy[,2], levels, noutliers = nout, label = ids)
+phaa5 <- hdrscatterplot(x = Y_anntsne_annoy[,1], y = Y_anntsne_annoy[,2], levels, noutliers = nout, label = ids)
+phaa6 <- hdrscatterplot(x = Y_annumap_annoy[,1], y = Y_annumap_annoy[,2], levels, noutliers = nout, label = ids)
 
-s <- (((ph1 + labs(title = "Isomap", x="ISO1", y="ISO2")) / 
-         (pha1 + labs(x="ISO1", y="ISO2")) /
-         (phaa1 + labs(x="ISO1", y="ISO2")))  | 
-    ((ph2 + labs(title = "LLE", x="LLE1", y="LLE2")) / 
-       (pha2 + labs(x="LLE1", y="LLE2")) /
-       (phaa2 + labs(x="ISO1", y="ISO2"))) | 
-    ((ph3 + labs(title = "Laplacian Eigenmaps", x="LE1", y="LE2")) / 
-       (pha3 + labs(x="LE1", y="LE2")) /
-       (phaa3 + labs(x="ISO1", y="ISO2"))) | 
-    ((ph4 + labs(title = "Hessian LLE", x="HLLE1", y="HLLE2")) / 
-       (pha4 + labs(x="HLLE1", y="HLLE2")) /
-       (phaa4 + labs(x="ISO1", y="ISO2")))) + 
+
+s <- (((ph1 + labs(title = "ISOMAP", x="", y="Exact NN")) / 
+         (pha1 + labs(x="", y="k-d trees")) /
+         (phaa1 + labs(x="", y="Annoy")))  | 
+        ((ph2 + labs(title = "LLE", x="", y="")) / 
+           (pha2 + labs(x="", y="")) /
+           (phaa2 + labs(x="", y=""))) | 
+        ((ph3 + labs(title = "Laplacian Eigenmaps", x="", y="")) / 
+           (pha3 + labs(x="", y="")) /
+           (phaa3 + labs(x="", y=""))) | 
+        ((ph4 + labs(title = "Hessian LLE", x="", y="")) / 
+           (pha4 + labs(x="", y="")) /
+           (phaa4 + labs(x="", y=""))) |
+        ((ph5 + labs(title = "t-SNE", x="", y="")) / 
+           (pha5 + labs(x="", y="")) /
+           (phaa5 + labs(x="", y=""))) |
+        ((ph6 + labs(title = "UMAP", x="", y="")) / 
+           (pha6 + labs(x="", y="")) /
+           (phaa6 + labs(x="", y="")))
+) + 
   plot_layout(guides = "collect") &
   guides(color=guide_legend(nrow=1,byrow=TRUE)) &
-  theme(legend.position = 'bottom') 
+  theme(legend.position = 'bottom', 
+        axis.title.y = element_text(hjust = 0.5, face = "bold", size = 14),
+        plot.title = element_text(hjust = 0.5)) 
 s
 
-# ((ph1 / pha1) | (ph2 / pha2) | (ph3 / pha3) | (ph4 / pha4)) +
+
+st <- (((ph1 + labs(title = "Exact NN", x="", y="ISOMAP")) | 
+         (pha1 + labs(title = "k-d trees", x="", y="")) |
+         (phaa1 + labs(title = "Annoy", x="", y="")))  / 
+        ((ph2 + labs(x="", y="LLE")) | 
+           (pha2 + labs(x="", y="")) |
+           (phaa2 + labs(x="", y=""))) / 
+        ((ph3 + labs(x="", y="Laplacian Eigenmaps")) | 
+           (pha3 + labs(x="", y="")) |
+           (phaa3 + labs(x="", y=""))) / 
+        ((ph4 + labs(x="", y="Hessian LLE")) | 
+           (pha4 + labs(x="", y="")) |
+           (phaa4 + labs(x="", y=""))) /
+        ((ph5 + labs(x="", y="t-SNE")) | 
+           (pha5 + labs(x="", y="")) |
+           (phaa5 + labs(x="", y=""))) /
+        ((ph6 + labs(x="", y="UMAP")) | 
+           (pha6 + labs(x="", y="")) |
+           (phaa6 + labs(x="", y="")))
+      ) + 
+        plot_layout(guides = "collect") &
+        guides(color = guide_legend(nrow = 1,byrow = TRUE)) &
+        theme(legend.position = 'bottom', plot.title = element_text(hjust = 0.5, face = "bold")) 
+st
+
+# ((ph1 / pha1 / phaa1) | (ph2 / pha2 / phaa2) | (ph3 / pha3 / phaa3) | (ph4 / pha4 / phaa4) | (ph5 / pha5 / phaa5) | (ph6 / pha6 / phaa6)) +
 #   plot_layout(guides = "collect") &
 #   theme(legend.position = 'bottom') &
 #   labs(x = "", y = "")
+
 ## hdrXX_compare_1id336tow.png
-# ggsave(paste0("paper/figures/hdr10_compare4ml_kdtreeannoy_1id", filename, ".png"), s, width=10, height=8)
-ggsave(paste0("paper/figures/hdr10_compare4ml_kdtreeannoy_allids_nt", nt, "_", filename, ".png"), s, width=10, height=8)
+# ggsave(paste0("paper/figures/hdr10_compare4ml_kdtreeannoy_1id_6methods", filename, ".png"), s, width=10, height=8)
+ggsave(paste0("paper/figures/hdr10_compare4ml_kdtreeannoy_allids_nt", nt, "_", filename, ".png"), s, width=10, height=6, dpi = 500)
+ggsave(paste0("paper/figures/hdr10_compare4ml_kdtreeannoy_allids_nt", nt, "_", filename, "_transpose.png"), st, width=8, height=11, dpi = 500)
 
 # save(Y_isomap, Y_lle, Y_le, Y_hlle, Y_annisomap, Y_annlle, Y_annle, Y_annhlle, pars, eps, 
 #      file = paste0('data/electricityplot_eps1_', filename, '.rda'))
@@ -1126,6 +1413,7 @@ p_box <- boxdata %>%
                      labels = c("99.0%", "95.0%", "50.0%"))
 p_box
 ggsave("paper/figures/electricity_hdrbox_3id_7dow.png", p_box, width = 12, height = 8)
+save(p_box, file = "data/electricity_quantileplot_3ids.rda")
 
 
 

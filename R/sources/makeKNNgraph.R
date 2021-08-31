@@ -6,7 +6,7 @@
 ## points and checking would neutralize the performance gain, so bd
 ## trees are not really usable.
 
-makeKNNgraph <- function (x, k, eps = 0, annmethod = c("kdtree", "annoy", "hnsw"), nt = 50, search.k = 500, nlinks = 16, ef.construction = 200, diag = FALSE, distance = c("euclidean", "manhattan")){
+makeKNNgraph <- function (x, k, eps = 0, annmethod = c("kdtree", "annoy", "hnsw"), radius = NULL, nt = 50, search.k = 500, nlinks = 16, ef.construction = 200, diag = FALSE, distance = c("euclidean", "manhattan"), ...){
   ## requireNamespace("RANN")
   ## requireNamespace("igraph")
   require(BiocNeighbors)
@@ -56,29 +56,44 @@ makeKNNgraph <- function (x, k, eps = 0, annmethod = c("kdtree", "annoy", "hnsw"
     #                    searchtype = searchtype, eps = eps)
   # }
   
-  switch(annmethod,
-         "kdtree" = {
-           treetype <- "kd"                
-           searchtype <- "priority"
-           nn2res <- dplyr::case_when(distance=="euclidean" ~ RANN::nn2(data = x, query = x, k = k + 1, treetype = treetype, searchtype = searchtype, eps = eps),
-                                      distance=="manhattan" ~ RANN.L1::nn2(data = x, query = x, k = k + 1, treetype = treetype, searchtype = searchtype, eps = eps),
-           )
-           names(nn2res) <- c("nn.idx", "nn.dists")
-           
-         },
-         "annoy"   = {
-           nn2res <- dplyr::case_when(distance=="euclidean" ~ BiocNeighbors::queryKNN(X = x, query = x, k = k + 1, BNPARAM = AnnoyParam(ntrees = nt, search.mult = search.k, distance = "Euclidean")),
-                                      distance=="manhattan" ~ BiocNeighbors::queryKNN(X = x, query = x, k = k + 1, BNPARAM = AnnoyParam(ntrees = nt, search.mult = search.k, distance = "Manhattan")),
-           )
-           names(nn2res) <- c("nn.idx", "nn.dists")
-         }, 
-         "hnsw"    = {
-           nn2res <- dplyr::case_when(distance=="euclidean" ~ BiocNeighbors::queryKNN(X = x, query = x, k = k + 1, BNPARAM = HnswParam(nlinks = nlinks, ef.construction = ef.construction, distance = "Euclidean")),
-                                      distance=="manhattan" ~ BiocNeighbors::queryKNN(X = x, query = x, k = k + 1, BNPARAM = HnswParam(nlinks = nlinks, ef.construction = ef.construction, distance = "Manhattan")),
-           )
-           names(nn2res) <- c("nn.idx", "nn.dists")
-         }
-         )
+  
+  # Built into a function find_ann()
+  # switch(annmethod,
+  #        "kdtree" = {
+  #          treetype <- "kd"                
+  #          searchtype <- "priority"
+  #          nn2res <- dplyr::case_when(distance=="euclidean" ~ RANN::nn2(data = x, query = x, k = k + 1, treetype = treetype, searchtype = searchtype, eps = eps),
+  #                                     distance=="manhattan" ~ RANN.L1::nn2(data = x, query = x, k = k + 1, treetype = treetype, searchtype = searchtype, eps = eps),
+  #          )
+  #          names(nn2res) <- c("nn.idx", "nn.dists")
+  #          
+  #        },
+  #        "annoy"   = {
+  #          nn2res <- dplyr::case_when(distance=="euclidean" ~ BiocNeighbors::queryKNN(X = x, query = x, k = k + 1, BNPARAM = AnnoyParam(ntrees = nt, search.mult = search.k, distance = "Euclidean")),
+  #                                     distance=="manhattan" ~ BiocNeighbors::queryKNN(X = x, query = x, k = k + 1, BNPARAM = AnnoyParam(ntrees = nt, search.mult = search.k, distance = "Manhattan")),
+  #          )
+  #          names(nn2res) <- c("nn.idx", "nn.dists")
+  #        }, 
+  #        "hnsw"    = {
+  #          nn2res <- dplyr::case_when(distance=="euclidean" ~ BiocNeighbors::queryKNN(X = x, query = x, k = k + 1, BNPARAM = HnswParam(nlinks = nlinks, ef.construction = ef.construction, distance = "Euclidean")),
+  #                                     distance=="manhattan" ~ BiocNeighbors::queryKNN(X = x, query = x, k = k + 1, BNPARAM = HnswParam(nlinks = nlinks, ef.construction = ef.construction, distance = "Manhattan")),
+  #          )
+  #          names(nn2res) <- c("nn.idx", "nn.dists")
+  #        }
+  #        )
+  
+  nn2res <- find_ann(x = x, 
+                     knn = k,
+                     get_geod = FALSE,
+                     annmethod = annmethod, 
+                     eps = eps, 
+                     radius = radius,
+                     nt = nt, 
+                     nlinks = nlinks, 
+                     ef.construction = ef.construction,
+                     ef.search = search.k,
+                     distance = distance,
+                     ...)
   
   ## create graph: the first ny nodes will be y, the last nx nodes
   ## will be x, if x != y

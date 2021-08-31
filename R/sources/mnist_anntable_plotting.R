@@ -16,7 +16,7 @@
 #   folder <- paste0("annelectricity/", nid, "id", ntow, "tow/")
 # }
 
-# simtable <- expand_grid(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE"),
+# simtable <- expand_grid(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE", "anntSNE", "annUMAP"),
 #                         annmethod = c("kdtree", "annoy", "hnsw"))
 # wholetable <- simtable %>%
 #   group_by(method, annmethod) %>%
@@ -37,8 +37,10 @@
 ### tool functions
 ###------------------------------------------------
 
-combineanntable <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE"), 
-                      annmethod = c("kdtree", "annoy", "hnsw")){
+combineanntable <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE", "anntSNE", "annUMAP"), 
+                      annmethod = c("kdtree", "annoy", "hnsw")
+                      # folder = "annmnist/",
+                      ){
   # Combine all ann_table from with different parameter values for each combination of manifold learning method (method) and ANN method (annmethod)
   # Input: method, annmethod
   # Output: ann_table
@@ -48,14 +50,15 @@ combineanntable <- function(method = c("annIsomap", "annLaplacianEigenmaps", "an
   epsilon <- seq(0, 5, 0.1) # kdtree
   ntrees <- seq(4, 100, 2) #2:100, # Annoy
   nlinks <- seq(2, 200, 2) #2:200 # HNSW
-  par <- switch (annmethod,
-    "kdtree" = {par <- epsilon},
-    "annoy" = {par <- ntrees},
-    "hnsw" = {par <- nlinks}
+  # nlinks <- setdiff(nlinks, c(174, 178, 180, 182, 184, 188, 190, 192, 196, 198, 200))   ##if removing some parameters
+  para <- switch (annmethod,
+    "kdtree" = {para <- epsilon},
+    "annoy" = {para <- ntrees},
+    "hnsw" = {para <- nlinks}
   )
   switch(dataname,
-         "MNISTtest" = {filename <- here::here(paste0(folder, "anntable_", method, "_", annmethod, "_", par, "_", dataname, "_", N,".rds")) },
-         "electricity" = {filename <- here::here(paste0(folder, "anntable_", method, "_", annmethod, "_", par, "_", dataname, "_", nid, "id", ntow, "tow.rds")) }
+         "MNISTtest" = {filename <- here::here(paste0(folder, "anntable_", method, "_", annmethod, "_", para, "_", dataname, "_", N,".rds")) },
+         "electricity" = {filename <- here::here(paste0(folder, "anntable_", method, "_", annmethod, "_", para, "_", dataname, "_", nid, "id", ntow, "tow.rds")) }
   )
   
   ann_table <- filename %>% 
@@ -87,7 +90,10 @@ filter_lims <- function(x, low=1, up=5){
 
 # Three plots are created based on ann_table: parameter against recall/M_T/time faceting
 
-anntablePlots <- function(ann_table, measure = c(M_T, M_C, LCMC, Qnx, W_n, W_nu, Procrustes, Qlocal, Qglobal, Rnx, mean_Rnx, auc_lnK_Rnx)){
+anntablePlots <- function(ann_table, measure = c(M_T, M_C, LCMC, Qnx, W_n, W_nu, Procrustes, Qlocal, Qglobal, Rnx, mean_Rnx, auc_lnK_Rnx)
+                          # folder = "annmnist/",
+                          # dataname = c("MNISTtest", "electricity")[1]
+                          ){
   # Plot ANN parameter against three quality measures, recall, trustworthiness and computation time
   # Input: combined ann_table from function combineanntable(), measure name from colnames(ann_table)
   # Output: three ggplot p_recall, p_MT, p_time and three saved pdf files
@@ -122,7 +128,7 @@ anntablePlots <- function(ann_table, measure = c(M_T, M_C, LCMC, Qnx, W_n, W_nu,
 
 
 
-recallplot <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE"),
+recallplot <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE", "anntSNE", "annUMAP"),
                        annmethod = c("kdtree", "annoy", "hnsw")){
   # Plot recall rate against computation time for three ANN methods, k-d trees, Annoy and HNSW
   # Input: manifold learning method and annmethod to be compared
@@ -165,7 +171,7 @@ recallplot <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE
 
 
 
-measureplot <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE"),
+measureplot <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE", "anntSNE", "annUMAP"),
                         measure = c(M_T, M_C, LCMC, Qnx, W_n, W_nu, Procrustes, Qlocal, Qglobal, Rnx, mean_Rnx, auc_lnK_Rnx),
                         annmethod = c("kdtree", "annoy", "hnsw"),
                         rm.outliers = FALSE, 
@@ -234,7 +240,7 @@ measureplot <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLL
 
 
 # Modify measureplot() to show multiple manifold learning methods in one measure
-mlfacets <- function(method = c("annIsomap", "annLLE", "annLaplacianEigenmaps", "annHLLE"),
+mlfacets <- function(method = c("annIsomap", "annLLE", "annLaplacianEigenmaps", "annHLLE", "anntSNE", "annUMAP"),
                      measure = c("M_T", "M_C", "LCMC", "Qnx", "W_n", "W_nu", "Procrustes", "Qlocal", "Qglobal", "Rnx", "mean_Rnx", "auc_lnK_Rnx"),
                      annmethod = c("kdtree", "annoy", "hnsw"),
                      rm.outliers = FALSE, 
@@ -243,10 +249,10 @@ mlfacets <- function(method = c("annIsomap", "annLLE", "annLaplacianEigenmaps", 
   # Plot one quality measure against computation time for multiple manifold learning methods in facets
   # Input: manifold learning method, `measure` name, which ANN method to be compared
   # Output: a ggplot comparing `measure` for three ANN methods
-  # Example: mlfacets(method = c("annIsomap", "annLLE", "annLaplacianEigenmaps", "annHLLE"), measure = "M_T", annmethod = c("kdtree", "annoy", "hnsw"), percentage = F)
+  # Example: mlfacets(method = c("annIsomap", "annLLE", "annLaplacianEigenmaps", "annHLLE", "anntSNE", "annUMAP"), measure = "M_T", annmethod = c("kdtree", "annoy", "hnsw"), percentage = F)
   
   require(tidyverse)
-  if(is.null(method)) method <- c("annIsomap", "annLLE", "annLaplacianEigenmaps", "annHLLE")
+  if(is.null(method)) method <- c("annIsomap", "annLLE", "annLaplacianEigenmaps", "annHLLE", "anntSNE", "annUMAP")
   if(is.null(annmethod)) annmethod <- c("kdtree", "annoy", "hnsw")
   measure <- match.arg(measure)
   ylabel <- dplyr::case_when(measure=="M_T" ~ "Trustworthiness",
@@ -277,6 +283,8 @@ mlfacets <- function(method = c("annIsomap", "annLLE", "annLaplacianEigenmaps", 
                      method==nntime$method[2] ~ time <= nntime$time[2],
                      method==nntime$method[3] ~ time <= nntime$time[3],
                      method==nntime$method[4] ~ time <= nntime$time[4],
+                     method==nntime$method[5] ~ time <= nntime$time[5],
+                     method==nntime$method[6] ~ time <= nntime$time[6],
     )) %>%
     rename(value = measure) %>%
     group_by(method) %>%
@@ -298,10 +306,12 @@ mlfacets <- function(method = c("annIsomap", "annLLE", "annLaplacianEigenmaps", 
     # mutate(value1 = ifelse(percentage, percent, value)) %>%
     ggplot(aes(x = time, y = value1, group = method)) +
     geom_point(aes(color = annmethod, group = method, shape = annmethod), size = 3) + # alpha = par, removed from aes()
-    facet_wrap(~method, scales="free", labeller = as_labeller(c(`annIsomap` = "Isomap",
+    facet_wrap(~method, scales="free", labeller = as_labeller(c(`annIsomap` = "ISOMAP",
                                                                 `annLLE` = "LLE",
                                                                 `annLaplacianEigenmaps` = "LaplacianEigenmaps",
-                                                                `annHLLE` = "HLLE"))) + 
+                                                                `annHLLE` = "HLLE",
+                                                                `anntSNE` = "t-SNE",
+                                                                `annUMAP` = "UMAP"))) + 
     geom_vline(data = nntime, aes(xintercept = time), linetype = 2) + # add KNN vertical line
     guides(color=guide_legend(keywidth = 2, keyheight = 1)) + 
     theme(legend.position = "bottom") +
@@ -333,7 +343,7 @@ measure_percent <- function(x, xnn){
 
 
 # Measure plots to compare three ANN methods, for each ML
-measurefacets <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE"),
+measurefacets <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE", "anntSNE", "annUMAP"),
                           annmethod = c("kdtree", "annoy", "hnsw"),
                           measure = c(M_T, M_C, LCMC, Qnx, W_n, W_nu, Procrustes, Qlocal, Qglobal, Rnx, mean_Rnx, auc_lnK_Rnx),
                           rm.outliers = FALSE,
@@ -433,7 +443,7 @@ measurefacets <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annH
 
 
 # # Measure plots to compare three ANN methods, for each ML
-# measurePlots <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE"), 
+# measurePlots <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE", "anntSNE", "annUMAP"), 
 #                          measure = c(M_T, M_C, LCMC, Qnx, W_n, W_nu, Procrustes, Qlocal, Qglobal, Rnx, mean_Rnx, auc_lnK_Rnx)){ # c("M_T", "M_C", "LCMC", "Qnx", "W_n", "W_nu", "Procrustes", "Qlocal", "Qglobal", "Rnx", "mean_Rnx", "auc_lnK_Rnx")
 #   # Plot seven manifold learning quality measure against computation time for three ANN methods, k-d trees, Annoy and HNSW
 #   # Input: manifold learning method to be compared in one plot
@@ -499,7 +509,7 @@ measurefacets <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annH
 
 
 # # Compare ANN methods in terms of recall rate for each ML method 
-# comparePlots <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE")){
+# comparePlots <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE", "anntSNE", "annUMAP")){
 #   # Plot manifold learning recall rate against computation time for three ANN methods, k-d trees, Annoy and HNSW
 #   # Input: manifold learning method to be compared in one plot
 #   # Output: one ggplot p_comp_recall to compare three ANN methods
@@ -563,7 +573,7 @@ measurefacets <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annH
 # Input: i in 1:1004
 # Output: ann_table_i, p_recall_i, p_MT_i, p_time_i
 # loadanntable <- function(scen = 1){
-#   ml <- c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE")#[-3]
+#   ml <- c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE", "anntSNE", "annUMAP")#[-3]
 #   epsilon <- seq(0, 10, 0.1) # kdtree
 #   ntrees <- seq(2, 100, 2) #2:100, # Annoy
 #   nlinks <- seq(2, 200, 2) #2:200 # HNSW
@@ -593,7 +603,7 @@ measurefacets <- function(method = c("annIsomap", "annLaplacianEigenmaps", "annH
 
 
 # Plotting
-# simtable <- expand_grid(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE"),
+# simtable <- expand_grid(method = c("annIsomap", "annLaplacianEigenmaps", "annHLLE", "annLLE", "anntSNE", "annUMAP"),
 #                         annmethod = c("kdtree", "annoy", "hnsw")) 
 # simtable
 # 
