@@ -5,6 +5,7 @@
 
 # Session Data files
 *.RData
+arXiv
 output/
 inst/*.RData
 msg/
