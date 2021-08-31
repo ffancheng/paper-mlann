@@ -8,7 +8,7 @@
 This section provides the pseudocode for the four manifold learning algorithms in Section \ref{ml}.
 
 \begin{algorithm}[!htb]
-  \caption{Isomap}
+  \caption{ISOMAP}
   \label{alg:isomap}
   \DontPrintSemicolon
   \SetAlgoLined
@@ -78,6 +78,12 @@ This section provides the pseudocode for the four manifold learning algorithms i
 \begin{algorithm}[!htb]
   \caption{Hessian LLE}
   \label{alg:hlle}
+  \DontPrintSemicolon
+  \SetAlgoLined
+  \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}
+  \Input{ high-dimensional data $x_i$ for all $i=1,\ldots,N$ }
+  \Output{ low-dimensional embedding $y_i$ for all $i=1,\ldots,N$ }
+  \BlankLine
   \begin{algorithmic}[1]
 
   \STATE Construct the $K$-nearest neighborhood graph $\mathcal{G}$;
@@ -104,6 +110,99 @@ This section provides the pseudocode for the four manifold learning algorithms i
 
   \end{algorithmic}
 \end{algorithm}
+
+
+\begin{algorithm}[!htb]
+  \caption{t-SNE}
+  \label{alg:tsne}
+  \DontPrintSemicolon
+  \SetAlgoLined
+  \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}\SetKwInOut{Parameter}{parameter}\SetKwInOut{OptParameter}{optimization parameter}
+  \Input{ high-dimensional data $x_i$ for all $i=1,\ldots,N$ }
+  \Output{ low-dimensional embedding $y_i$ for all $i=1,\ldots,N$ }
+  \Parameter{ \textit{perplexity} }
+  \OptParameter{ number of iterations $T$, learning rate $\eta$, momentum $\alpha(t)$ }
+  \BlankLine
+  \begin{algorithmic}[1]
+
+  \STATE Compute the Gaussian conditional probability of distances for $x_i$ and $x_j$ as $p_{j \mid i}$ using
+  $$
+    p_{j \mid i}=\frac{\exp \left(-\left\|x_{i}-x_{j}\right\|^{2} / 2 \sigma_{i}^{2}\right)}{\sum_{k \neq i} \exp \left(-\left\|x_{i}-x_{k}\right\|^{2} / 2 \sigma_{i}^{2}\right)}
+  $$
+  where the variance $\sigma_{i}$ for each $x_i$ optimized with the perplexity parameter by $ 2 ^ {-\sum_j{p_{j \mid i} \log_2{p_{j \mid i}}}} = \textit{perplexity} $, and set $p_{i \mid i}=0$;
+
+  \STATE Set the probability as $p_{i j}=(p_{j \mid i}+p_{i \mid j}) / (2 N)$;
+
+  \STATE Initialize the optimization solution as $\mathcal{Y}^{(0)} = \{ y_1, \dots, y_N \}$ and $\mathcal{Y}^{(1)}$ sampled from normal distribution $\mathcal{N}(0, 10^{-4} \boldsymbol{I})$;
+
+  \FOR{$t = 1,\dots,T$}
+
+  \STATE Compute the Student t-distribution of distances between $y_i$ and $y_j$ as 
+  $$
+    q_{i j}=\frac{\left(1+\left\|y_{i}-y_{j}\right\|^{2}\right)^{-1}}{\sum_{k \neq l}\left(1+\left\|y_{k}-y_{l}\right\|^{2}\right)^{-1}};
+  $$
+
+  \STATE Compute the gradient of the Kullback-Leibler divergence loss function for all $i=1,\ldots,N$ as
+  $$
+    \frac{\delta KL}{\delta y_{i}}=4 \sum_{j}\left(p_{i j}-q_{i j}\right)\left(y_{i}-y_{j}\right)\left(1+\left\|y_{i}-y_{j}\right\|^{2}\right)^{-1} ;
+  $$
+
+  \STATE Update $ \mathcal{Y}^{(t)}=\mathcal{Y}^{(t-1)} + \eta \frac{\delta KL}{\delta \mathcal{Y}} + \alpha(t)\left(\mathcal{Y}^{(t-1)}-\mathcal{Y}^{(t-2)}\right). $
+
+  \ENDFOR
+
+  \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[!htb]
+  \caption{UMAP}
+  \label{alg:umap}
+  \DontPrintSemicolon
+  \SetAlgoLined
+  \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}\SetKwInOut{Parameter}{parameter}
+  \Input{ high-dimensional data $x_i$ for all $i=1,\ldots,N$ }
+  \Output{ low-dimensional embedding $y_i$ for all $i=1,\ldots,N$ }
+  \Parameter{ number of nearest neighbors $K$, minimum distance between embedded points \textit{min\_dist}, amount of optimization work \textit{n\_epochs}}
+  \BlankLine
+  \begin{algorithmic}[1]
+
+  \STATE Construct the $K$-nearest neighborhood graph to find the $K$-ary neighborhood $U_K(i)$ with distances $\delta_{ij}$, and denote the distance to its nearest neighbor as $\rho_i$ for each $x_i$;
+
+  \STATE For the neighborhood points in $U_K(i)$, apply a smooth approximator to $\delta_{ij}$ to search for $\sigma_i$ such that $\sum_{i}^K e^{\frac{- \max(0, \delta_{ij} -\rho_{i}) } {\sigma_{i}}} = \log_2{K}$;
+
+  \STATE Compute the exponential probability of distances between $x_i$ and $x_j$ as $p_{j \mid i}$ using
+  $$
+    p_{i \mid j}=e^{\frac{-\max(0, \delta_{ij} -\rho_{i})}{\sigma_{i}}};
+  $$
+
+  \STATE Set $p_{i j}=p_{j \mid i}+p_{i \mid j} - p_{i \mid j} p_{j \mid i}$;
+
+  \STATE Define the distribution of distances between $y_i$ and $y_j$ as
+  $$
+    q_{i j}=\left(1+a\left(y_{i}-y_{j}\right)^{2 b}\right)^{-1},
+  $$
+  where $a$ and $b$ are found using the \textit{min\_dist} parameter such that
+  $$
+      q_{i j} \approx\left\{\begin{array}{ll}
+  1 & \text { if } y_{i}-y_{j} \leq \textit{min\_dist} \\
+  e^{-\left(y_{i}-y_{j}\right)-\textit{min\_dist}} & \text { if } y_{i}-y_{j} > \textit{min\_dist};
+  \end{array}\right.
+  $$
+
+  \STATE The cost function is constructed using a binary fuzzy set cross entropy (CE) as
+  $$
+    CE(X, Y)=\sum_{i} \sum_{j}\left[p_{i j}(X) \log \left(\frac{p_{i j}(X)}{q_{i j}(Y)}\right)+\left(1-p_{i j}(X)\right) \log \left(\frac{1-p_{i j}(X)}{1-q_{i j}(Y)}\right)\right]
+  $$
+
+  \STATE Initialize the embedding coordinates $y_i$ using the graph Laplacian with weights as $p_{ij}$, similar to Laplacian Eigenmaps in Algorithm \ref{alg:le};
+
+  \STATE Optimize $y_i$ by minimizing the cross entropy using stochastic gradient descent with \textit{n\_epochs}.
+
+  \end{algorithmic}
+\end{algorithm}
+
+
 
 \clearpage
 \FloatBarrier
