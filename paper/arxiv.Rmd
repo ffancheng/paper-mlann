@@ -1,0 +1,49 @@
+---
+title: "Computationally Efficient Learning of Statistical Manifolds"
+shorttitle: "Computationally Efficient Learning of Statistical Manifolds"
+authors:
+- name: Fan Cheng
+  affiliation: Monash University
+  location: Australia
+  email: Fan.Cheng@monash.edu
+  correspondingauthor: true
+- name: Anastasios Panagiotelis
+  affiliation: University of Sydney
+  location: Australia
+  email: Anastasios.Panagiotelis@sydney.edu.au
+- name: Rob J Hyndman
+  affiliation: Monash University
+  location: Australia
+  email: Rob.Hyndman@monash.edu
+abstract: "Analyzing high-dimensional data with manifold learning algorithms often requires searching for the nearest neighbors of all observations. This presents a computational bottleneck in statistical manifold learning when observations of probability distributions rather than vector-valued variables are available or when data size is large. We resolve this problem by proposing a new method for approximation in statistical manifold learning. The novelty of our approximation is the strongly consistent distance estimators based on independent and identically distributed samples from probability distributions. By exploiting the connection between Hellinger/total variation distance for discrete distributions and the L2/L1 norm, we demonstrate that the proposed distance estimators, combined with approximate nearest neighbor searching, could largely improve the computational efficiency with little to no loss in the accuracy of manifold embedding. The result is robust to different manifold learning algorithms and different approximate nearest neighbor algorithms. The proposed method is applied to learning statistical manifolds of electricity usage. This application demonstrates how underlying structures in high dimensional data, including anomalies, can be visualized and identified, in a way that is scalable to large datasets."
+keywords: 
+  - dimension reduction
+  - divergence estimation
+  - Hellinger distance
+  - anomaly detection
+  - k-d trees
+bibliography: references.bib
+biblio-style: agsm
+classoption: 11pt,twoside
+output:
+  rticles::arxiv_article:
+    fig_caption: yes
+    fig_height: 5
+    fig_width: 8
+    includes:
+      in_header: preamble.tex
+      after_body: appendix.tex
+    keep_tex: yes
+    number_sections: yes
+    citation_package: natbib
+    latex_engine: pdflatex
+---
+
+\rhead{Cheng, Panagiotelis, Hyndman: 10 March 2022}
+
+```{r child="celsm.Rmd"}
+```
+
+# Acknowledgment {-}
+
+This research was supported in part by the Monash eResearch Centre and eSolutions-Research Support Services through the use of the MonARCH HPC Cluster. We would also like to acknowledge the support of the *Australian Research Council (ARC) Centre of Excellence for Mathematical and Statistical Frontiers (ACEMS)* for this project.
