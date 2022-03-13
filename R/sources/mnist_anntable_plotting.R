@@ -4,14 +4,14 @@
 ###------------------------------------------------
 # rm(list=ls())
 # library(tidyverse)
-# 
+#
 # i <- 1
 # dataname <- c("MNISTtest", "electricity")[i]
 # if(i == 1) {
 #   N <- 10000
 #   folder <- "annmnist/"
 # } else{
-#   nid <- 30
+#   nid <- 3639
 #   ntow <- 336
 #   folder <- paste0("annelectricity/", nid, "id", ntow, "tow/")
 # }
@@ -47,8 +47,8 @@ combineanntable <- function(method = c("annIsomap", "annLaplacianEigenmaps", "an
   # Example: combineanntable(method = "annIsomap", annmethod = "kdtree")
   method <- match.arg(method)
   annmethod <- match.arg(annmethod)
-  epsilon <- seq(0, 5, 0.1) # kdtree
-  ntrees <- seq(4, 100, 2) #2:100, # Annoy
+  epsilon <- seq(0,100,2) # seq(0, 5, 0.1) # kdtree
+  ntrees <- seq(2, 100, 2) #2:100, # Annoy
   nlinks <- seq(2, 200, 2) #2:200 # HNSW
   # nlinks <- setdiff(nlinks, c(174, 178, 180, 182, 184, 188, 190, 192, 196, 198, 200))   ##if removing some parameters
   para <- switch (annmethod,
